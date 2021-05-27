@@ -5,7 +5,7 @@ This repository consists of two separate parts:
 - A Python scratchpad simulator which takes in trace files, and simulates the accesses on a scratchpad of the desired paramesters, outputting various statistics from the simulation
 
 ### kd-Tree Trace Generator instructions:
-- Run make command and the run in the format:
+- Run make command and then run in the format:
   >./trace_generator \<kd-Tree input file\>    \<NNS query input file\>    \<Trace file to write to\>  
 - Ex: ./trace_generator test2_in search1 test2_out
 - Input and output files should be contained in their respective folders
