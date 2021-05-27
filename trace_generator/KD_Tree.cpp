@@ -4,6 +4,8 @@
 KD_Tree::KD_Tree(std::string file_in, std::string file_out) {
     num_nodes = 0;
     root = NULL;
+    //File to write trace to
+    fout.open(file_out);
     //Contain indices for points in nodes, used for calculating trace addresses
     node_nums = new std::map<Node*, int>();
     point_nums = new std::map<Point*, int>();
@@ -11,8 +13,6 @@ KD_Tree::KD_Tree(std::string file_in, std::string file_out) {
     call_stack = new std::stack<int>();
     //Tree is constructed
     build_tree(file_in);
-    //File to write trace to
-    fout.open(file_out);
 }
 KD_Tree::~KD_Tree() {
     free_node(root);
@@ -168,6 +168,12 @@ void KD_Tree::assign_nums() {
         node_nums->insert(std::pair<Node*, int>(n, i));
         point_nums->insert(std::pair<Point*, int>(p, i));
     }
+    //Areas of memory are allocated for each data type, based on the maximum possible number of allocations
+    mem_ptrs[POINT] = 0;
+    mem_ptrs[NODE] = mem_sizes[POINT] * (num_nodes + 1);
+    mem_ptrs[CALL] = mem_ptrs[NODE] + (mem_sizes[NODE] * num_nodes);
+    mem_ptrs[3] = mem_ptrs[CALL] + (mem_sizes[NODE] * (num_nodes + 1));
+    fout << mem_ptrs[3] << std::endl;
     
 }
 

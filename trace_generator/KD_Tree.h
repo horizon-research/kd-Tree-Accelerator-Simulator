@@ -23,7 +23,6 @@
 #define CALL 2
 
 //Contains starting memory locations and sizes for points, nodes, and stack calls
-static const int mem_ptrs[] = {0x0, 0x1000, 0x2000, 0x3000};
 static const int mem_sizes[] = {16, 24, 8};
 
 
@@ -39,6 +38,8 @@ struct Node {
 class KD_Tree {
     int num_nodes;
     int num_dimensions;
+
+    int mem_ptrs[4];
     std::map<Node*, int>* node_nums;
     std::map<Point*, int>* point_nums;
     std::ofstream fout;
