@@ -15,6 +15,7 @@ class Point {
         int dimension_value(int d);
         ~Point();
         double distance(Point* p);
+        Point copy();
         friend std::ostream& operator<<(std::ostream& os, const Point& p);
 
     };

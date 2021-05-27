@@ -5,8 +5,7 @@ KD_Tree::KD_Tree(std::string file_in, std::string file_out) {
     num_nodes = 0;
     root = NULL;
     //File to write trace to
-
-    fout.open(file_out);
+    fout.open("../Trace_Files/" + file_out);
     //Contain indices for points in nodes, used for calculating trace addresses
     node_nums = new std::map<Node*, int>();
     point_nums = new std::map<Point*, int>();
@@ -45,7 +44,7 @@ Node* KD_Tree::insert_rec(Node* tree, int level, int values_in[]) {
     }
 }
 //Recursive function to find the closest point in the tree to the given point, could be modified to find closest n points
-Point* KD_Tree::nearest_neighbour(Point target_in) {
+Point KD_Tree::nearest_neighbour(Point& target_in) {
     Point* target = &target_in;
     //Closest distance found yet set to maximim double value
     double best_distance = DBL_MAX;
@@ -58,7 +57,7 @@ Point* KD_Tree::nearest_neighbour(Point target_in) {
     //Pointers to nearest and best_distance inputted to recursive function
     nearest_neighbour_rec(target, &nearest, root, &best_distance, 0);
 
-    return nearest;
+    return nearest->copy();
 }
 //Traverses down path as if the target point were being inserted in the tree, 
 //if any point encountered along the way is closer than the current closest point,
@@ -221,7 +220,8 @@ void KD_Tree::write_trace(bool read, int type, int num, int offset) {
 
 //Builds tree based on input file
 void KD_Tree::build_tree(std::string file_in) {
-    std::ifstream fin(file_in);
+
+    std::ifstream fin("../kdTree_Inputs/" + file_in);
     if (fin.is_open()) {
         std::string line;
         int value;
@@ -248,4 +248,7 @@ void KD_Tree::build_tree(std::string file_in) {
         std::cout << "Error opening file" << std::endl;
         exit(0);
     }
+}
+int KD_Tree::get_num_dimensions() {
+    return num_dimensions;
 }

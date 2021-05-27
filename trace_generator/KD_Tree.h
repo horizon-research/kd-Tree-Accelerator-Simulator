@@ -63,9 +63,10 @@ class KD_Tree {
 
     public:
         KD_Tree(std::string file_in, std::string file_out);
+        int get_num_dimensions();
         void insert(int values_in[]);
         void print();
-        Point* nearest_neighbour(Point target_in);
+        Point nearest_neighbour(Point& target_in);
         ~KD_Tree();
         void memory_assignment();
       

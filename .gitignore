@@ -1,4 +1,5 @@
 .vscode/
-*.o
 __pycache__/
+*.o
+*.pyc
 
