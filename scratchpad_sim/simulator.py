@@ -1,4 +1,4 @@
-from .scratchpad import Scratchpad
+from scratchpad import Scratchpad
 import sys
 
     
@@ -7,10 +7,13 @@ import sys
 class Simulator:
     def __init__(self, num_banks, size, trace_file):
         self.scratchpad = Scratchpad(num_banks, size)
-        fin = open(trace_file)
+        fin = open("../Trace_Files/" + trace_file)
         self.trace_lines = fin.readlines()
+        line = self.trace_lines[0]
+        line_tokens = line.split()
 
-        self.access_num = 0
+        self.memory_addresses = [line_tokens[i] for i in range(4)]
+        self.access_num = 1
         #Statistics for simulations
         self.num_conflicts = 0
         self.read_nums = [0, 0, 0]
