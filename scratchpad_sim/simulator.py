@@ -1,4 +1,4 @@
-from scratchpad import Scratchpad
+from .scratchpad import Scratchpad
 import sys
 
     

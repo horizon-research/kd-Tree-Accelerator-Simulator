@@ -11,6 +11,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Invalid number of arguments\n";
         return 1;
     }
+    std::string file_path = std::string(argv[1]);
     KD_Tree tree(argv[1], argv[2]);
     int p1_values[] = {0, 0, 0};
     Point* p = tree.nearest_neighbour(Point(3, p1_values));

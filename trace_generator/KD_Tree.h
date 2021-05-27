@@ -9,6 +9,9 @@
 #include <vector>
 #include <bitset>
 
+//Macros to make writes to trace file more readable
+#define READ true
+#define WRITE false
 
 #define X 0
 #define Y 4
@@ -22,7 +25,7 @@
 #define NODE 1
 #define CALL 2
 
-//Contains starting memory locations and sizes for points, nodes, and stack calls
+//Contains padded sizes for points, nodes, and stack structures
 static const int mem_sizes[] = {16, 24, 8};
 
 
@@ -64,6 +67,6 @@ class KD_Tree {
         void print();
         Point* nearest_neighbour(Point target_in);
         ~KD_Tree();
-        void assign_nums();
+        void memory_assignment();
       
 };

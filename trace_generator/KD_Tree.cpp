@@ -5,6 +5,7 @@ KD_Tree::KD_Tree(std::string file_in, std::string file_out) {
     num_nodes = 0;
     root = NULL;
     //File to write trace to
+
     fout.open(file_out);
     //Contain indices for points in nodes, used for calculating trace addresses
     node_nums = new std::map<Node*, int>();
@@ -63,60 +64,60 @@ Point* KD_Tree::nearest_neighbour(Point target_in) {
 //if any point encountered along the way is closer than the current closest point,
 //that point is then set to be closest point
 void KD_Tree::nearest_neighbour_rec(Point* target, Point** current_best, Node* tree, double* best_distance, int level) {
-    int call_num = call_stack->top();
+    int call_num = call_stack->top() + 1;
     if (tree) {
         int splitting_plane = level % num_dimensions;
         //Values found for current point and target point
         int target_value = target->dimension_value(splitting_plane);
-        write_trace(true, POINT, point_index(target), splitting_plane * 4);
+        write_trace(READ, POINT, point_index(target), splitting_plane * 4);
 
         int current_value = tree->p->dimension_value(splitting_plane);
-        write_trace(true, NODE, node_index(tree), P);
-        write_trace(true, POINT, point_index(tree->p), splitting_plane * 4);
+        write_trace(READ, NODE, node_index(tree), P);
+        write_trace(READ, POINT, point_index(tree->p), splitting_plane * 4);
 
 
         //If target value is less than current, take left subtree
         if (target_value < current_value) {
             call_stack->push(call_num + 1);
-            write_trace(true, NODE, node_index(tree), 8);
+            write_trace(READ, NODE, node_index(tree), LEFT);
             nearest_neighbour_rec(target, current_best, tree->left, best_distance, level + 1);
             //If the current best distance + the target value is greater than the current value,
             //it is possible that the closest point could be contained in right subtree, so it is searched as well
             if (target_value + *best_distance > current_value) {
                 call_stack->push(call_num + 1);
-                write_trace(true, NODE, node_index(tree), 16);
+                write_trace(READ, NODE, node_index(tree), RIGHT);
                 nearest_neighbour_rec(target, current_best, tree->right, best_distance, level + 1);
             }
         }
         //If target value is greater than current, take right subtree
         else {
             call_stack->push(call_num + 1);
-            write_trace(true, NODE, node_index(tree), RIGHT);
+            write_trace(READ, NODE, node_index(tree), RIGHT);
             nearest_neighbour_rec(target, current_best, tree->right, best_distance, level + 1);
             //If the target value - the current best distance is less than than the current value,
             //it is possible that the closest point could be contained in the left subtree, so it is searched as well
             if (target_value - *best_distance < current_value) {
                 call_stack->push(call_num + 1);
-                write_trace(true, NODE, node_index(tree), LEFT);
+                write_trace(READ, NODE, node_index(tree), LEFT);
                 nearest_neighbour_rec(target, current_best, tree->left, best_distance, level + 1);
             }
         }
         //Writes traces for distance computation, in the future a more elegant solution can be found
-        write_trace(true, NODE, node_nums->find(tree)->second, P);
+        write_trace(READ, NODE, node_nums->find(tree)->second, P);
 
-        write_trace(true, POINT, point_index(tree->p), X);
-        write_trace(true, POINT, point_index(tree->p), Y);
-        write_trace(true, POINT, point_index(tree->p), Z);
+        write_trace(READ, POINT, point_index(tree->p), X);
+        write_trace(READ, POINT, point_index(tree->p), Y);
+        write_trace(READ, POINT, point_index(tree->p), Z);
 
-        write_trace(true, POINT, point_index(target), X);
-        write_trace(true, POINT, point_index(target), Y);
-        write_trace(true, POINT, point_index(target), Z);
+        write_trace(READ, POINT, point_index(target), X);
+        write_trace(READ, POINT, point_index(target), Y);
+        write_trace(READ, POINT, point_index(target), Z);
 
 
         double distance = tree->p->distance(target);
         //Comparisons start at leaf nodes at works back up the tree
         if (distance < *best_distance) {
-            write_trace(true, NODE, node_index(tree), P);
+            write_trace(READ, NODE, node_index(tree), P);
             *current_best = tree->p;
             *best_distance = distance;
         }    
@@ -124,7 +125,7 @@ void KD_Tree::nearest_neighbour_rec(Point* target, Point** current_best, Node* t
     //When returning to caller function, pop index off stack and write it to the trace file
     call_stack->pop();
     if (!call_stack->empty()) {
-        write_trace(true, CALL,  call_stack->top(), 0);
+        write_trace(READ, CALL,  call_stack->top(), 0);
     }
 }
 //Recursively frees nodes
@@ -155,13 +156,17 @@ void KD_Tree::print_rec(Node* tree, int level) {
         print_rec(tree->right, level + 1);
     }
 }
-//Recursivley goes through tree, assigns each point and node a number, and adding the pair to a dictonary
-void KD_Tree::assign_nums() {
+
+//Assigns each point and node a number, and adding the pair to a dictonary
+//Then assigns pointers in simulated memory for various data structures
+void KD_Tree::memory_assignment() {
     std::vector<Point*> point_list;
     std::vector<Node*> node_list;
-   
+    //Points and nodes are recursively assigned indices, and added to vectors
     assign_nums(root, 0, point_list, node_list);
+
     int size = point_list.size();
+    //
     for (int i = 0; i < size; i++) {
         Node* n = node_list.at(i);
         Point* p = point_list.at(i);
@@ -172,8 +177,12 @@ void KD_Tree::assign_nums() {
     mem_ptrs[POINT] = 0;
     mem_ptrs[NODE] = mem_sizes[POINT] * (num_nodes + 1);
     mem_ptrs[CALL] = mem_ptrs[NODE] + (mem_sizes[NODE] * num_nodes);
-    mem_ptrs[3] = mem_ptrs[CALL] + (mem_sizes[NODE] * (num_nodes + 1));
-    fout << mem_ptrs[3] << std::endl;
+    mem_ptrs[3] = mem_ptrs[CALL] + (mem_sizes[CALL] * (num_nodes + 1));
+    //Prints memory addresses to trace file
+    fout << "0x" << std::hex << std::setw(6) << std::setfill('0') << mem_ptrs[POINT]  
+         << " 0x" << std::hex << std::setw(6) << std::setfill('0') << mem_ptrs[NODE] 
+         << " 0x" << std::hex << std::setw(6) << std::setfill('0') << mem_ptrs[CALL] 
+         << " 0x" << std::hex << std::setw(6) << std::setfill('0') <<  mem_ptrs[3] << std::endl;
     
 }
 
@@ -233,6 +242,10 @@ void KD_Tree::build_tree(std::string file_in) {
         }
         print();
         //Nodes and points are assigned indices
-        assign_nums();
+        memory_assignment();
+    }
+    else {
+        std::cout << "Error opening file" << std::endl;
+        exit(0);
     }
 }
