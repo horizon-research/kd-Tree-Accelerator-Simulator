@@ -34,12 +34,18 @@ class Simulator:
         while self.access_num < len(self.trace_lines):
             line = self.trace_lines[self.access_num]
             line_tokens = line.split()
+            #Second token in trace file represents the data type being accessed
             access_type = int(line_tokens[1])
+            #Read
             if line_tokens[0] == "R":
+                    #Address converted from hexadecimal
                     address = int(line_tokens[2], 16)
                     self.read_nums[access_type] += 1
+                    #If false was returned, there was a conflict
                     if not self.scratchpad.read(address):
                         self.num_conflicts += 1
+                    self.scratchpad.clear_banks()
+            #Increments index to next access
             self.access_num += 1
         
 

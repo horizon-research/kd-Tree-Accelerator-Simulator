@@ -43,7 +43,7 @@ class Scratchpad:
 
         conflict = False
         bank = self.get_bank(address)
-        #If respective bank queue is empty, 
+        #If respective bank queue is not empty, a conflict has occured
         if not self.bank_reads[bank].empty():
             conflict = True
         self.bank_reads[bank].put(address)
