@@ -1,7 +1,7 @@
 # kd-Tree-Scratchpad-Sim
 ---
 This repository consists of two separate parts: 
-- A C++ kd-tree implementation which performs nearest-neighbour searches, and genrates a trace file containing a series of simulated memory acceses which would occur during thenearest-neighbour search.
+- A C++ kd-tree implementation which performs nearest-neighbour searches, and genrates a trace file containing a series of simulated memory accesses which would occur during a nearest-neighbour search.
 - A Python scratchpad simulator which takes in trace files, and simulates the accesses on a scratchpad of the desired paramesters, outputting various statistics from the simulation
 
 ### kd-Tree Trace Generator instructions:
