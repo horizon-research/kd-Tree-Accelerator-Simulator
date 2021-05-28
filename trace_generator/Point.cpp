@@ -26,12 +26,12 @@ double Point::distance(Point* p) {
     }
     return sqrt(sum);
 }
-Point Point::copy() {
+Point* Point::copy() {
     int values_copy[num_dimensions];
     for (int i = 0; i < num_dimensions; i++) {
         values_copy[i] = dimension_value(i);
     }
-    return Point(num_dimensions, values_copy);
+    return new Point(num_dimensions, values_copy);
 }
 std::ostream& operator<<(std::ostream& os, const Point& p) {
     os << "[";

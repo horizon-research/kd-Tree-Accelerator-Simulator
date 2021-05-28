@@ -6,12 +6,14 @@
 
 #include "KD_Tree.h"
 #include <fstream> 
+#include <vector>
 int main(int argc, char* argv[]) {
     if (argc != 4) {
         std::cout << "Invalid number of arguments\n";
         return 1;
     }
     KD_Tree tree(argv[1], argv[3]);
+    
     std::ifstream fin("../Search_Inputs/" + std::string(argv[2]));
 
     if (fin.is_open()) {
@@ -27,21 +29,38 @@ int main(int argc, char* argv[]) {
         //Each line of file is read
         while (getline(fin, line)) {
             std::istringstream sin(line);
+            std::string query_type;
+            sin >> query_type;
             int values[num_dimensions];
+            bool KNN = false;
+            if (query_type == "KNN") {
+                KNN = true;
+            }
             //Point is created and added to tree
             for (int i = 0; i < num_dimensions; i++) {
                 sin >> value;
                 values[i] = value;
             }
             Point query(num_dimensions, values);
-            Point p = tree.nearest_neighbour(query);
-            std::cout << p << std::endl;
+            if (KNN) {
+                int k;
+                sin >> k;
+                std::vector<Point*> points = tree.knn_search(query, k);
+                for (auto p : points) {
+                    std::cout << *p << std::endl;
+                }
+            }
+            else {
+                Point* p = tree.nearest_neighbour(query);
+                std::cout << *p << std::endl;
+            }
+            
         }
     }
     else {
         std::cout << "Error opening file: " << argv[2] << std::endl;
         exit(0);
     }
-
+    
     return 0;
 }
