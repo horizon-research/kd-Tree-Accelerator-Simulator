@@ -46,58 +46,71 @@ Node* KD_Tree::insert_rec(Node* tree, int level, int values_in[]) {
 Point* KD_Tree::nearest_neighbour(Point& target_in) {
     Point* target = &target_in;
     //Closest distance found yet set to maximim double value
-    double best_distance = DBL_MAX;
-    //Address of closest point in tree
-    Point* nearest = NULL;
+    std::pair<double, Point*> current_best(DBL_MAX, NULL);
     //First call added to stack
     call_stack->push(0);
     //Target node added to list of point indices
     point_nums->insert(std::pair<Point*, int>(target, num_nodes));
     //Pointers to nearest and best_distance inputted to recursive function
-    nearest_neighbour_rec(target, &nearest, root, &best_distance, 0);
+    nearest_neighbour_rec(target, current_best, root,  0);
 
-    return nearest->copy();
+    return current_best.second->copy();
 }
 //Traverses down path as if the target point were being inserted in the tree, 
 //if any point encountered along the way is closer than the current closest point,
 //that point is then set to be closest point
-void KD_Tree::nearest_neighbour_rec(Point* target, Point** current_best, Node* tree, double* best_distance, int level) {
+void KD_Tree::nearest_neighbour_rec(Point* target, std::pair<double, Point*> &current_best, Node* tree, int level) {
     int call_num = call_stack->top() + 1;
+    memory->write_access(READ, STACK, call_num, 16);
+    memory->write_instruction(1);
     if (tree) {
-        int splitting_plane = level % num_dimensions;
-        //Values found for current point and target point
-        int target_value = target->dimension_value(splitting_plane);
-        memory->write_access(READ, POINT, point_index(target), splitting_plane * 4);
 
-        int current_value = tree->p->dimension_value(splitting_plane);
+        memory->write_access(READ, STACK, call_num, 24);
+        memory->write_instruction(2);
+        int splitting_plane = level % num_dimensions;
+
+        //Values found for current point and target point
+        memory->write_access(READ, STACK, call_num, 0);
+        memory->write_access(READ, POINT, point_index(target), splitting_plane * 4);
+        memory->write_instruction(1);
+        int target_value = target->dimension_value(splitting_plane);
+
+        memory->write_access(READ, STACK, call_num, 16);
         memory->write_access(READ, NODE, node_index(tree), P);
         memory->write_access(READ, POINT, point_index(tree->p), splitting_plane * 4);
+        int current_value = tree->p->dimension_value(splitting_plane);
+        
 
 
         //If target value is less than current, take left subtree
+        memory->write_instruction(2);
         if (target_value < current_value) {
             call_stack->push(call_num + 1);
+            memory->write_instruction(1);
             memory->write_access(READ, NODE, node_index(tree), LEFT);
-            nearest_neighbour_rec(target, current_best, tree->left, best_distance, level + 1);
+            nearest_neighbour_rec(target, current_best, tree->left, level + 1);
             //If the current best distance + the target value is greater than the current value,
             //it is possible that the closest point could be contained in right subtree, so it is searched as well
-            if (target_value + *best_distance > current_value) {
+            memory->write_access(READ, STACK, call_num, 12);
+            memory->write_instruction(3);
+            if (target_value + current_best.first > current_value) {
                 call_stack->push(call_num + 1);
                 memory->write_access(READ, NODE, node_index(tree), RIGHT);
-                nearest_neighbour_rec(target, current_best, tree->right, best_distance, level + 1);
+                nearest_neighbour_rec(target, current_best, tree->right,  level + 1);
             }
         }
         //If target value is greater than current, take right subtree
         else {
             call_stack->push(call_num + 1);
             memory->write_access(READ, NODE, node_index(tree), RIGHT);
-            nearest_neighbour_rec(target, current_best, tree->right, best_distance, level + 1);
+            memory->write_instruction(1);
+            nearest_neighbour_rec(target, current_best, tree->right, level + 1);
             //If the target value - the current best distance is less than than the current value,
             //it is possible that the closest point could be contained in the left subtree, so it is searched as well
-            if (target_value - *best_distance < current_value) {
+            if (target_value - current_best.first < current_value) {
                 call_stack->push(call_num + 1);
                 memory->write_access(READ, NODE, node_index(tree), LEFT);
-                nearest_neighbour_rec(target, current_best, tree->left, best_distance, level + 1);
+                nearest_neighbour_rec(target, current_best, tree->left,  level + 1);
             }
         }
         //Writes traces for distance computation, in the future a more elegant solution can be found
@@ -107,16 +120,19 @@ void KD_Tree::nearest_neighbour_rec(Point* target, Point** current_best, Node* t
 
         double distance = tree->p->distance(target);
         //Comparisons start at leaf nodes at works back up the tree
-        if (distance < *best_distance) {
+        memory->write_access(READ, STACK, call_num, 16);
+        memory->write_instruction(1);
+        if (distance < current_best.first) {
             memory->write_access(READ, NODE, node_index(tree), P);
-            *current_best = tree->p;
-            *best_distance = distance;
+            memory->write_instruction(2);
+            current_best.second = tree->p;
+            current_best.first = distance;
         }    
     }
     //When returning to caller function, pop index off stack and write it to the trace file
     call_stack->pop();
     if (!call_stack->empty()) {
-        memory->write_access(READ, CALL,  call_stack->top(), 0);
+        memory->write_access(READ, STACK,  call_stack->top(), 0);
     }
 }
 //Recursive function to find the closest point in the tree to the given point, could be modified to find closest n points
@@ -206,7 +222,7 @@ void KD_Tree::knn_rec(Point& target, std::priority_queue<std::pair<double, Point
     //When returning to caller function, pop index off stack and write it to the trace file
     call_stack->pop();
     if (!call_stack->empty()) {
-        memory->write_access(READ, CALL,  call_stack->top(), 0);
+        memory->write_access(READ, STACK,  call_stack->top(), 0);
     }
 }
 //Recursively frees nodes

@@ -16,7 +16,7 @@
 
 #define POINT 0
 #define NODE 1
-#define CALL 2
+#define STACK 2
 #define STRUCTURE 3
 //Contains padded sizes for points, nodes, and stack structures
 const int mem_sizes[] = {16, 24, 8, 16};
@@ -27,7 +27,7 @@ class Memory {
     std::ofstream fout;
     public:
         void write_access(int access_type, int data_type, int index, int offset);
-        void write_instruction();
+        void write_instruction(int num);
         void write_distance(int p1_index, int p2_index);
         Memory(int num_nodes, std::string file_out);
 };
