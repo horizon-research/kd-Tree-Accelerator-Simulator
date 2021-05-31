@@ -23,6 +23,7 @@ const int mem_sizes[] = {16, 24, 8, 16};
 
 
 class Memory {
+    int num_trace_files;
     int mem_ptrs[5];
     std::ofstream fout;
     public:

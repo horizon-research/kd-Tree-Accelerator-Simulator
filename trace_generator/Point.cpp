@@ -18,7 +18,7 @@ float Point::dimension_value(int d) {
     return dimension_values[d];
 }
 //Calculates distance by find sqaure root of the sum of the squares of the differences
-double Point::distance(Point* p) {
+float Point::distance(Point* p) {
     int sum = 0;
     for (int i = 0; i < num_dimensions; i++) {
         float difference = dimension_value(i) - p->dimension_value(i);

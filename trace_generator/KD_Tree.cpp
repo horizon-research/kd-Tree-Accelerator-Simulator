@@ -45,8 +45,8 @@ Node* KD_Tree::insert_rec(Node* tree, int level, float values_in[]) {
 }
 Point* KD_Tree::nearest_neighbour(Point& target_in) {
     Point* target = &target_in;
-    //Closest distance found yet set to maximim double value
-    std::pair<double, Point*> current_best(DBL_MAX, NULL);
+    //Closest distance found yet set to maximim float value
+    std::pair<float, Point*> current_best(DBL_MAX, NULL);
     //First call added to stack
     call_stack->push(0);
     //Target node added to list of point indices
@@ -59,7 +59,7 @@ Point* KD_Tree::nearest_neighbour(Point& target_in) {
 //Traverses down path as if the target point were being inserted in the tree, 
 //if any point encountered along the way is closer than the current closest point,
 //that point is then set to be closest point
-void KD_Tree::nearest_neighbour_rec(Point* target, std::pair<double, Point*> &current_best, Node* tree, int level) {
+void KD_Tree::nearest_neighbour_rec(Point* target, std::pair<float, Point*> &current_best, Node* tree, int level) {
     int call_num = call_stack->top() + 1;
     memory->write_access(READ, STACK, call_num, 16);
     memory->write_instruction(1);
@@ -118,7 +118,7 @@ void KD_Tree::nearest_neighbour_rec(Point* target, std::pair<double, Point*> &cu
         memory->write_distance(point_index(target), point_index(tree->p));
 
 
-        double distance = tree->p->distance(target);
+        float distance = tree->p->distance(target);
         //Comparisons start at leaf nodes at works back up the tree
         memory->write_access(READ, STACK, call_num, 16);
         memory->write_instruction(1);
@@ -137,10 +137,10 @@ void KD_Tree::nearest_neighbour_rec(Point* target, std::pair<double, Point*> &cu
 }
 //Recursive function to find the closest point in the tree to the given point, could be modified to find closest n points
 std::vector<Point*> KD_Tree::knn_search(Point& target_in, unsigned int k) {
-    std::priority_queue<std::pair<double, Point*>> max_heap;
-    max_heap.push(std::pair<double, Point*>(DBL_MAX, NULL));
+    std::priority_queue<std::pair<float, Point*>> max_heap;
+    max_heap.push(std::pair<float, Point*>(DBL_MAX, NULL));
     Point* target = &target_in;
-    //Closest distance found yet set to maximum double value
+    //Closest distance found yet set to maximum float value
     //Address of closest point in tree
     //First call added to stack
     call_stack->push(0);
@@ -158,7 +158,7 @@ std::vector<Point*> KD_Tree::knn_search(Point& target_in, unsigned int k) {
 //Traverses down path as if the target point were being inserted in the tree, 
 //if any point encountered along the way is closer than the current closest point,
 //that point is then set to be closest point
-void KD_Tree::knn_rec(Point& target, std::priority_queue<std::pair<double, Point*>>& max_heap, Node* tree, unsigned int k, int level) {
+void KD_Tree::knn_rec(Point& target, std::priority_queue<std::pair<float, Point*>>& max_heap, Node* tree, unsigned int k, int level) {
     int call_num = call_stack->top() + 1;
     if (tree) {
         int splitting_plane = level % num_dimensions;
@@ -202,14 +202,14 @@ void KD_Tree::knn_rec(Point& target, std::priority_queue<std::pair<double, Point
         memory->write_distance(point_index(&target), point_index(tree->p));
 
 
-        double distance = tree->p->distance(&target);
+        float distance = tree->p->distance(&target);
         //Comparisons start at leaf nodes at works back up the tree
         if (max_heap.size() < k) {
-            max_heap.push(std::pair<double, Point*>(distance, tree->p));
+            max_heap.push(std::pair<float, Point*>(distance, tree->p));
         }
         else if (distance < max_heap.top().first) {
             max_heap.pop();
-            max_heap.push(std::pair<double, Point*>(distance, tree->p));
+            max_heap.push(std::pair<float, Point*>(distance, tree->p));
         }
     }
     //When returning to caller function, pop index off stack and write it to the trace file
