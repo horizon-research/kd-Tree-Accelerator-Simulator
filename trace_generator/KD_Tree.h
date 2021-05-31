@@ -36,8 +36,12 @@ class KD_Tree {
     void free_node(Node* tree);
     Node* insert_rec(Node* tree, int level, float values_in[]);
     void print_rec(Node* tree, int level);
+    
     void knn_rec(Point& target, std::priority_queue<std::pair<double, Point*>>& max_heap, Node* tree, unsigned int k, int level);
     void nearest_neighbour_rec(Point* target, std::pair<double, Point*> &current_best, Node* tree, int level);
+    void range_search_rec(Node* tree, int range[3][2], std::vector<Point*> &in_range);
+    void add_subtree(Node* tree, std::vector<Point*> &in_range);
+    inline int dimensions_in_range(int range[3][2], Point* p);
 
     void assign_nums(Node* tree, int n, std::vector<Point*>& point_list, std::vector<Node*>& node_list);
     void build_tree(std::string file_in);
@@ -52,6 +56,8 @@ class KD_Tree {
         void insert(float values_in[]);
         void print();
         std::vector<Point*> knn_search(Point& target_in, unsigned int k);
+        std::vector<Point*> range_search(int range[3][2]);
+
         Point* nearest_neighbour(Point& target_in);
         ~KD_Tree();
       

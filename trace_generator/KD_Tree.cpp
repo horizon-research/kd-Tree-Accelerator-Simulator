@@ -219,6 +219,47 @@ void KD_Tree::knn_rec(Point& target, std::priority_queue<std::pair<double, Point
     }
 }
 
+
+std::vector<Point*> KD_Tree::range_search(int range[3][2]) {
+    std::vector<Point*> in_range;
+    range_search_rec(root, range, in_range);
+    return in_range;
+}
+
+void  KD_Tree::range_search_rec(Node* tree, int range[3][2], std::vector<Point*> &in_range) {
+    if (tree) {
+        int num_in_range = dimensions_in_range(range, tree->p);
+        if (num_in_range == 3) {
+            add_subtree(tree, in_range);
+        }
+        else if (num_in_range > 0) {
+            range_search_rec(tree->left, range, in_range);
+            range_search_rec(tree->right, range, in_range);
+        }
+    }
+}
+void  KD_Tree::add_subtree(Node* tree, std::vector<Point*> &in_range) {
+    if (tree) {
+        in_range.push_back(tree->p);
+        add_subtree(tree->left, in_range);
+        add_subtree(tree->right, in_range);
+    }
+}
+
+
+
+
+inline int KD_Tree::dimensions_in_range(int range[3][2], Point* p) {
+    int num_in_range = 0;
+    for (int i = 0; i < 3; i ++) {
+        int val = p->dimension_value(i);
+        if (val >= range[i][0] && val <= range[i][1]) {
+            num_in_range++;
+        }
+    }
+    return num_in_range;
+}
+
 //Recursively frees nodes
 void KD_Tree::free_node(Node* tree) {
     if (tree == NULL) {
@@ -260,7 +301,6 @@ void KD_Tree::assign_nums(Node* tree, int n, std::vector<Point*>& point_list, st
     
 }
 
-//Writes given read or write to trace file
 
 
 //Builds tree based on input file

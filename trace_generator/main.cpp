@@ -8,6 +8,8 @@
 #include <fstream> 
 #include <vector>
 int main(int argc, char* argv[]) {
+    
+
     if (argc != 4) {
         std::cout << "Invalid number of arguments\n";
         return 1;
