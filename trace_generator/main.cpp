@@ -8,14 +8,19 @@
 #include <fstream> 
 #include <vector>
 int main(int argc, char* argv[]) {
-    
+ 
 
     if (argc != 4) {
         std::cout << "Invalid number of arguments\n";
         return 1;
     }
     KD_Tree tree(argv[1], argv[3]);
-    
+    float range[3][2] = {{4, 5}, {0, 1}, {6, 7}};
+    std::vector<Point*> points = tree.range_search(range);
+    for (auto p : points) {
+        std::cout << *p << std::endl;
+    }
+    /*
     std::ifstream fin("../Search_Inputs/" + std::string(argv[2]));
 
     if (fin.is_open()) {
@@ -63,6 +68,6 @@ int main(int argc, char* argv[]) {
         std::cout << "Error opening file: " << argv[2] << std::endl;
         exit(0);
     }
-    
+    */
     return 0;
 }

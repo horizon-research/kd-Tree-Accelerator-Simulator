@@ -220,21 +220,35 @@ void KD_Tree::knn_rec(Point& target, std::priority_queue<std::pair<double, Point
 }
 
 
-std::vector<Point*> KD_Tree::range_search(int range[3][2]) {
+std::vector<Point*> KD_Tree::range_search(float range[3][2]) {
     std::vector<Point*> in_range;
-    range_search_rec(root, range, in_range);
+    float BB[3][2] = {{NEG_FLT_MAX, FLT_MAX}, {NEG_FLT_MAX, FLT_MAX}, {NEG_FLT_MAX, FLT_MAX}};
+
+    range_search_rec(root, range, BB, in_range, 0);
     return in_range;
 }
 
-void  KD_Tree::range_search_rec(Node* tree, int range[3][2], std::vector<Point*> &in_range) {
+void  KD_Tree::range_search_rec(Node* tree, float range[3][2], float BB[3][2], std::vector<Point*> &in_range, int level) {
     if (tree) {
-        int num_in_range = dimensions_in_range(range, tree->p);
-        if (num_in_range == 3) {
-            add_subtree(tree, in_range);
-        }
-        else if (num_in_range > 0) {
-            range_search_rec(tree->left, range, in_range);
-            range_search_rec(tree->right, range, in_range);
+        if (overlap(range, BB)) {
+            if (subset(range, BB)) {
+                add_subtree(tree, in_range);
+            }
+            else {
+                if(point_in_range(range, tree->p)) {
+                    in_range.push_back(tree->p);
+                }
+                int splitting_plane = level % num_dimensions;
+                float BB_left[3][2] = {{BB[0][0], BB[0][1]}, {BB[1][0], BB[1][1]}, {BB[2][0], BB[2][1]}};
+                BB_left[splitting_plane][1] = tree->p->dimension_value(splitting_plane);
+
+                float BB_right[3][2] = {{BB[0][0], BB[0][1]}, {BB[1][0], BB[1][1]}, {BB[2][0], BB[2][1]}};
+                BB_left[splitting_plane][0] = tree->p->dimension_value(splitting_plane);
+
+                range_search_rec(tree->left, range, BB_left, in_range, level + 1);
+                range_search_rec(tree->right, range, BB_right, in_range, level + 1);
+
+            }
         }
     }
 }
@@ -245,19 +259,40 @@ void  KD_Tree::add_subtree(Node* tree, std::vector<Point*> &in_range) {
         add_subtree(tree->right, in_range);
     }
 }
-
-
-
-
-inline int KD_Tree::dimensions_in_range(int range[3][2], Point* p) {
-    int num_in_range = 0;
+inline bool KD_Tree::point_in_range(float range[3][2], Point* p) {
     for (int i = 0; i < 3; i ++) {
-        int val = p->dimension_value(i);
-        if (val >= range[i][0] && val <= range[i][1]) {
-            num_in_range++;
+        if (!(p->dimension_value(i) >= range[i][0] && p->dimension_value(i) <= range[i][1])) {
+            return false;
         }
     }
-    return num_in_range;
+    return true;
+}
+
+
+
+inline bool KD_Tree::subset(float range[3][2],float BB[3][2]) {
+    for (int i = 0; i < 3; i ++) {
+        if (!(BB[i][0] >= range[i][0] && BB[i][1] <= range[i][1])) {
+            return false;
+        }
+    }
+    return true;
+}
+inline bool KD_Tree::overlap(float range[3][2],float BB[3][2]) {
+    int num_in_range = 0;
+    for (int i = 0; i < 3; i ++) {
+        if (BB[i][0] > range[i][0]) {
+            if (range[i][1] > BB[i][0]) {
+                return true;
+            }
+        }
+        else {
+            if (BB[i][1] > range[i][0]) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 //Recursively frees nodes
