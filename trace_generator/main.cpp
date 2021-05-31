@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
 
     if (fin.is_open()) {
         std::string line;
-        int value;
+        float value;
         //kd-tree dimension found
         getline(fin, line);
         int num_dimensions = stoi(line);
@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
             std::istringstream sin(line);
             std::string query_type;
             sin >> query_type;
-            int values[num_dimensions];
+            float values[num_dimensions];
             bool KNN = false;
             if (query_type == "KNN") {
                 KNN = true;

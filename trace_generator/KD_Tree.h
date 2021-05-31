@@ -7,6 +7,7 @@
 #include <sstream>
 #include <vector>
 #include <queue>
+#include <set>
 #include "Memory.h"
 
 
@@ -33,7 +34,7 @@ class KD_Tree {
     Memory* memory;
 
     void free_node(Node* tree);
-    Node* insert_rec(Node* tree, int level, int values_in[]);
+    Node* insert_rec(Node* tree, int level, float values_in[]);
     void print_rec(Node* tree, int level);
     void knn_rec(Point& target, std::priority_queue<std::pair<double, Point*>>& max_heap, Node* tree, unsigned int k, int level);
     void nearest_neighbour_rec(Point* target, std::pair<double, Point*> &current_best, Node* tree, int level);
@@ -48,7 +49,7 @@ class KD_Tree {
     public:
         KD_Tree(std::string file_in, std::string file_out);
         int get_num_dimensions();
-        void insert(int values_in[]);
+        void insert(float values_in[]);
         void print();
         std::vector<Point*> knn_search(Point& target_in, unsigned int k);
         Point* nearest_neighbour(Point& target_in);

@@ -7,12 +7,12 @@
 class Point {
     private:
         int num_dimensions;
-        int* dimension_values;
+        float* dimension_values;
     public:
-        Point(int num_dimensions_in, int values_in[]);
+        Point(int num_dimensions_in, float values_in[]);
         Point() = default;
         int get_size();
-        int dimension_value(int d);
+        float dimension_value(int d);
         ~Point();
         double distance(Point* p);
         Point* copy();

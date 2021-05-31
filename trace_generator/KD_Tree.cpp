@@ -18,11 +18,11 @@ KD_Tree::~KD_Tree() {
     free_node(root);
 }
 //Calls recursive insert function
-void KD_Tree::insert(int values_in[]) {
+void KD_Tree::insert(float values_in[]) {
     root = insert_rec(root, 0, values_in);
 }
 //Adds point to proper location in tree, based on comparison with each nodes splitting plane value
-Node* KD_Tree::insert_rec(Node* tree, int level, int values_in[]) {
+Node* KD_Tree::insert_rec(Node* tree, int level, float values_in[]) {
     //End of tree, new node created
     if (tree == NULL) {
         tree = new Node();
@@ -199,14 +199,7 @@ void KD_Tree::knn_rec(Point& target, std::priority_queue<std::pair<double, Point
         }
         //Writes traces for distance computation, in the future a more elegant solution can be found
         memory->write_access(READ, NODE, node_nums->find(tree)->second, P);
-
-        memory->write_access(READ, POINT, point_index(tree->p), X);
-        memory->write_access(READ, POINT, point_index(tree->p), Y);
-        memory->write_access(READ, POINT, point_index(tree->p), Z);
-
-        memory->write_access(READ, POINT, point_index(&target), X);
-        memory->write_access(READ, POINT, point_index(&target), Y);
-        memory->write_access(READ, POINT, point_index(&target), Z);
+        memory->write_distance(point_index(&target), point_index(tree->p));
 
 
         double distance = tree->p->distance(&target);
@@ -225,6 +218,7 @@ void KD_Tree::knn_rec(Point& target, std::priority_queue<std::pair<double, Point
         memory->write_access(READ, STACK,  call_stack->top(), 0);
     }
 }
+
 //Recursively frees nodes
 void KD_Tree::free_node(Node* tree) {
     if (tree == NULL) {
@@ -275,14 +269,14 @@ void KD_Tree::build_tree(std::string file_in) {
     std::ifstream fin("../kdTree_Inputs/" + file_in);
     if (fin.is_open()) {
         std::string line;
-        int value;
+        float value;
         //kd-tree dimension found
         getline(fin, line);
         num_dimensions = stoi(line);
         //Each line of file is read
         while (getline(fin, line)) {
             std::istringstream sin(line);
-            int values[num_dimensions];
+            float values[num_dimensions];
             //Point is created and added to tree
             for (int i = 0; i < num_dimensions; i++) {
                 sin >> value;

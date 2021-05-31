@@ -1,9 +1,9 @@
 #include "Point.h"
 
-Point::Point(int num_dimensions_in, int values_in[]) {
+Point::Point(int num_dimensions_in, float values_in[]) {
     num_dimensions = num_dimensions_in;
     
-    dimension_values = new int[num_dimensions];
+    dimension_values = new float[num_dimensions];
     for (int i = 0; i < num_dimensions; i++) {
         dimension_values[i] = values_in[i];
     }
@@ -11,7 +11,7 @@ Point::Point(int num_dimensions_in, int values_in[]) {
 int Point::get_size() {
     return num_dimensions;
 }
-int Point::dimension_value(int d) {
+float Point::dimension_value(int d) {
     if (d >= num_dimensions) {
         return -1;
     }
@@ -21,13 +21,13 @@ int Point::dimension_value(int d) {
 double Point::distance(Point* p) {
     int sum = 0;
     for (int i = 0; i < num_dimensions; i++) {
-        int difference = dimension_value(i) - p->dimension_value(i);
+        float difference = dimension_value(i) - p->dimension_value(i);
         sum += pow(difference, 2);
     }
     return sqrt(sum);
 }
 Point* Point::copy() {
-    int values_copy[num_dimensions];
+    float values_copy[num_dimensions];
     for (int i = 0; i < num_dimensions; i++) {
         values_copy[i] = dimension_value(i);
     }
