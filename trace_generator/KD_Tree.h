@@ -23,7 +23,6 @@ struct Node {
 class KD_Tree {
     int num_nodes;
     int num_dimensions;
-    int num_parallel_queries;
     
     Node* root;
     std::map<Node*, int>* node_nums;
@@ -31,7 +30,6 @@ class KD_Tree {
     std::stack<int>* call_stack;
 
 
-    Memory* memory;
 
     void free_node(Node* tree);
     Node* insert_rec(Node* tree, int level, float values_in[]);
@@ -56,13 +54,13 @@ class KD_Tree {
 
 
     public:
-        KD_Tree(std::string file_in, std::string file_out);
+        KD_Tree(std::string file_in, std::string file_out, int num_parallel_queries);
         int get_num_dimensions();
         void insert(float values_in[]);
         void print();
         std::vector<Point*> knn_search(Point& target_in, unsigned int k);
         std::vector<Point*> range_search(float range[3][2]);
-
+        Memory* memory;
         Point* nearest_neighbour(Point& target_in);
         ~KD_Tree();
       

@@ -11,13 +11,13 @@ using namespace std;
 int main(int argc, char* argv[]) {
  
 
-    if (argc != 4) {
+    if (argc != 5) {
         cout << "Invalid number of arguments\n";
         return 1;
     }
-    KD_Tree tree(argv[1], argv[3]);
+    int num_processor_units = stoi(argv[4]);
+    KD_Tree tree(argv[1], argv[3], num_processor_units);
     ifstream fin("../Search_Inputs/" + string(argv[2]));
-
     if (fin.is_open()) {
         string line;
         float value;
@@ -29,7 +29,9 @@ int main(int argc, char* argv[]) {
             exit(0);
         }
         //Each line of file is read
+        int query_num = 0;
         while (getline(fin, line)) {
+            tree.memory->set_fout(query_num % num_processor_units);
             istringstream sin(line);
             string query_type;
             sin >> query_type;
@@ -63,6 +65,7 @@ int main(int argc, char* argv[]) {
                     cout << *p << endl;
                 }
             } 
+            query_num++;
         }
     }
     else {
