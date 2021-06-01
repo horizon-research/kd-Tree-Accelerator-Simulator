@@ -20,7 +20,7 @@
 #define STACK 2
 #define STRUCTURE 3
 //Contains padded sizes for points, nodes, and stack structures
-const int mem_sizes[] = {16, 24, 8, 16};
+const int mem_sizes[] = {16, 24, 32, 16};
 
 
 class Memory {

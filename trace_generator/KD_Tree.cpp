@@ -279,7 +279,6 @@ inline bool KD_Tree::subset(float range[3][2],float BB[3][2]) {
     return true;
 }
 inline bool KD_Tree::overlap(float range[3][2],float BB[3][2]) {
-    int num_in_range = 0;
     for (int i = 0; i < 3; i ++) {
         if (BB[i][0] > range[i][0]) {
             if (range[i][1] > BB[i][0]) {

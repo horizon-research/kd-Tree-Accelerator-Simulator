@@ -4,7 +4,7 @@ void Memory::write_access(int access_type, int data_type, int index, int offset)
         //Address is calculated from starting memory pointer, pointer index, and given offset
         int address = mem_ptrs[data_type] + (index * mem_sizes[data_type]) + offset;
         if (address > mem_ptrs[data_type + 1]) {
-            fout_arr[current_file] << "Not enough memory assigned!" << std::endl;
+            fout_arr[current_file] << "Not enough memory assigned!" << data_type << " " << std::hex << address << std::endl;
         }
         //Write to file, for type: 0=point, 1=node, 2=call
         else {
