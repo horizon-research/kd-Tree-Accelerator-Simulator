@@ -35,8 +35,8 @@ class Scratchpad:
     def get_offset(self, address):
         return (address & self.offset_mask)
 
-    #Read command is processed, determines whether there is a bank conflict for the given read, and returns if the read was processed with no conflict
-    def read(self, address):
+    #Read command is processed, determines whether there is a bank conflict for the given read, and returns true if the read was processed with no conflict
+    def read(self, address, access_num):
         if address > self.size:
             print("Read out of bounds")
             return False
@@ -46,15 +46,16 @@ class Scratchpad:
         #If respective bank queue is not empty, a conflict has occured
         if not self.bank_reads[bank].empty():
             conflict = True
-        self.bank_reads[bank].put(address)
+        self.bank_reads[bank].put(access_num)
         return conflict
 
 
     #Removes first element in each bank queue, representing the reads processed for this cycle
     def clear_banks(self):
-        for i in range(self.num_banks):
-            if not self.bank_reads[i].empty():
-                self.bank_reads[i].get()
+        list = []
+        for queue in self.bank_reads:
+            if not queue.empty():
+                list.append(queue.get())
 
 
 #Potentially needed later
