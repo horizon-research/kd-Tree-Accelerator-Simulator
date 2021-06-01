@@ -1,7 +1,7 @@
 #include "KD_Tree.h"
 
 //Constructs kd-tree based on inputted file
-KD_Tree::KD_Tree(std::string file_in, std::string file_out, int num_parallel_queries) {
+KD_Tree::KD_Tree(std::string file_in) {
     num_nodes = 0;
     root = NULL;
     //File to write trace to
@@ -12,7 +12,7 @@ KD_Tree::KD_Tree(std::string file_in, std::string file_out, int num_parallel_que
     call_stack = new std::stack<int>();
     //Tree is constructed
     build_tree(file_in);
-    memory = new Memory(num_nodes, num_parallel_queries, file_out);
+    memory = new Memory(num_nodes);
 }
 KD_Tree::~KD_Tree() {
     free_node(root);

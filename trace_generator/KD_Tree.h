@@ -54,7 +54,7 @@ class KD_Tree {
 
 
     public:
-        KD_Tree(std::string file_in, std::string file_out, int num_parallel_queries);
+        KD_Tree(std::string file_in);
         int get_num_dimensions();
         void insert(float values_in[]);
         void print();

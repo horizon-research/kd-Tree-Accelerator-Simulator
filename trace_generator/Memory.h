@@ -27,12 +27,11 @@ class Memory {
     int num_trace_files;
     int current_file;
     int mem_ptrs[5];
-    std::ofstream fout;
-    std::vector<std::ofstream> fout_arr;
+    std::ofstream* fout;
     public:
         void write_access(int access_type, int data_type, int index, int offset);
         void write_instruction(int num);
         void write_distance(int p1_index, int p2_index);
-        void set_fout(int num);
-        Memory(int num_nodes, int num_trace_files_in, std::string file_out);
+        void set_fout(std::ofstream* fout_in);
+        Memory(int num_nodes);
 };
