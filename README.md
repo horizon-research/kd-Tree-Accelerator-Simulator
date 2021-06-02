@@ -6,11 +6,13 @@ This repository consists of two separate parts:
 
 ### kd-Tree Trace Generator instructions:
 - Run "make" command and then run in the format:
-  >./trace_generator \<kd-Tree input file\>    \<Query input file\>    \<New directory to contain trace files\>  
-- Ex: ./trace_generator test2_in search1 test
+  ./trace_generator \<kd-Tree input file\>    \<Query input file\>    \<New directory to contain trace files\>  
+- Example: 
+  > ./trace_generator test2_in search1 test
 - Input and output files should be contained in their respective folders.
 
 ### Scratchpad Simulator instructions:
 - Run in format:
-  >python3 simulator.py \<Number of banks\>  \<Size in bytes\>  \<Number of PEs for simulation\>  \<Folder containing trace files\>
-- Ex: python3 simulator.py 2 1024 2 test
+  python3 simulator.py \<Number of banks\>  \<Size in bytes\>  \<Number of PEs for simulation\>  \<Folder containing trace files\>  
+- Example:  
+  > python3 simulator.py 2 1024 2 test
