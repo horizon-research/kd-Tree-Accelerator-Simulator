@@ -1,4 +1,4 @@
-CXXFLAGS= -std=c++11 -Wall -g 
+CXXFLAGS= -std=c++17 -Wall -g 
 DEPFILES = KD_Tree.h Point.h Memory.h
 
 trace_generator: KD_Tree.o Point.o Memory.o main.o KD_Tree.h Point.h Memory.h
