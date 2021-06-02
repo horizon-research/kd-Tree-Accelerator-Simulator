@@ -6,6 +6,7 @@ class PE:
     def __init__(self):
         self.stalled = False
         self.busy = False
+        self.lines_processed = 0
         self.current_line = 0
         self.trace_length = 0
         self.current_query = []
@@ -42,6 +43,7 @@ class PE:
             sim.stalled_cycles += 1
         else:
             self.current_line += 1
+            self.lines_processed += 1
 
         return True
 
@@ -90,12 +92,25 @@ class Simulator:
 
 
     def print_results(self):
+        print("Summary:")
+        print(f'Scratchpad size: {self.scratchpad.size} bytes')
+        print(f'Scratchpad banks: {self.scratchpad.num_banks}')
+        print(f'Num PEs: {self.num_PEs}')
+        print(f'Number of queries processed: {self.num_queries}\n')
+
+
         print(f'Point reads: {self.read_nums[0]}')
         print(f'Node reads: {self.read_nums[1]}')
-        print(f'Call reads: {self.read_nums[2]}')
+        print(f'Stack reads: {self.read_nums[2]}')
         print(f'Num conflicts: {self.num_conflicts}')
-        print(f'Cumulative stalled cycles: {self.stalled_cycles}')
-        print(f'Num cycles: {self.cycles}')
+        print(f'Total number of stalled cycles: {self.stalled_cycles}')
+
+        max = 0
+        for pe in self.PEs:
+            if pe.lines_processed > max:
+                max = pe.lines_processed
+        print(f'Ideal num cycles: {max}')
+        print(f'Actual num cycles: {self.cycles}')
 
 
     def run(self):

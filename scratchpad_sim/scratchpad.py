@@ -10,7 +10,7 @@ class Scratchpad:
         self.linesize = 64
         self.num_banks = banks_in
         self.size = size_in
-
+    
         #Number of bits needed to represent bank and offset are calculated
         self.offset_bits = int(np.log2(self.linesize))
         self.bank_bits = int(np.log2(self.num_banks))
