@@ -7,6 +7,7 @@
 #include "KD_Tree.h"
 #include <fstream> 
 #include <vector>
+#include <filesystem>
 using namespace std;
 int main(int argc, char* argv[]) {
  
@@ -16,6 +17,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     std::string file_name = argv[3];
+    std::filesystem::create_directory("../Trace_Files/" + file_name);
     KD_Tree tree(argv[1]);
     ifstream fin("../Search_Inputs/" + string(argv[2]));
     if (fin.is_open()) {
@@ -32,7 +34,7 @@ int main(int argc, char* argv[]) {
         int query_num = 0;
         while (getline(fin, line)) {
             ofstream fout;
-            fout.open("../Trace_Files/" + file_name + "_" + to_string(query_num));
+            fout.open("../Trace_Files/" + file_name + "/" + file_name + "_" + to_string(query_num));
             tree.memory->set_fout(&fout);
             istringstream sin(line);
             string query_type;

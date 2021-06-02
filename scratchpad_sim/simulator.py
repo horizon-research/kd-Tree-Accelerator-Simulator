@@ -58,7 +58,7 @@ class Simulator:
         self.current_query = 0
         while queries_left:
             try:
-                fin = open("../Trace_Files/" + trace_file + "_" + str(self.num_queries))
+                fin = open("../Trace_Files/" + trace_file + "/" + trace_file + "_" + str(self.num_queries))
                 self.traces.append(fin.readlines())
                 self.num_queries += 1
             except:
