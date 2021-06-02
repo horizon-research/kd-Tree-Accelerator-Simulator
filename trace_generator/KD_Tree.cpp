@@ -107,6 +107,8 @@ void KD_Tree::nearest_neighbour_rec(Point* target, std::pair<float, Point*> &cur
             nearest_neighbour_rec(target, current_best, tree->right, level + 1);
             //If the target value - the current best distance is less than than the current value,
             //it is possible that the closest point could be contained in the left subtree, so it is searched as well
+            memory->write_access(READ, STACK, call_num, 12);
+            memory->write_instruction(4);
             if (target_value - current_best.first < current_value) {
                 call_stack->push(call_num + 1);
                 memory->write_access(READ, NODE, node_index(tree), LEFT);

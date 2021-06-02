@@ -39,16 +39,16 @@ Memory::Memory(int num_nodes) {
 void Memory::write_distance(int p1_index, int p2_index) {
     write_access(READ, POINT, p1_index, X);
     write_access(READ, POINT, p2_index, X);
-    write_instruction(3);
+    write_instruction(6);
 
     write_access(READ, POINT, p1_index, Y);
     write_access(READ, POINT, p2_index, Y);
-    write_instruction(3);
+    write_instruction(6);
 
 
     write_access(READ, POINT, p1_index, Z);
     write_access(READ, POINT, p2_index, Z);
-    write_instruction(4);
+    write_instruction(8);
 
 }
 void Memory::set_fout(std::ofstream* fout_in) {
