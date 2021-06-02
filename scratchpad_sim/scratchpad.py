@@ -14,7 +14,6 @@ class Scratchpad:
         #Number of bits needed to represent bank and offset are calculated
         self.offset_bits = int(np.log2(self.linesize))
         self.bank_bits = int(np.log2(self.num_banks))
-
         #Mask to find proper offset
         self.offset_mask = self.linesize - 1
         #Mask to find proper bank
@@ -25,7 +24,7 @@ class Scratchpad:
 
         self.num_lines = self.size / self.linesize
         #Queue datastrcuture created for each bank, represents the memory acceses still waiting to be processed
-        self.bank_reads = [queue.SimpleQueue() for i in range(self.num_banks)]
+        self.bank_reads = [queue.Queue() for i in range(self.num_banks)]
     
     #Bank is determined from physical address
     def get_bank(self, address):
@@ -56,6 +55,7 @@ class Scratchpad:
         for queue in self.bank_reads:
             if not queue.empty():
                 list.append(queue.get())
+        return list
 
 
 #Potentially needed later
