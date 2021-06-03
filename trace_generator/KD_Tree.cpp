@@ -116,6 +116,7 @@ void KD_Tree::nearest_neighbour_rec(Point* target, std::pair<float, Point*> &cur
             }
         }
         //Writes traces for distance computation, in the future a more elegant solution can be found
+        memory->write_access(READ, STACK, call_num, 0);
         memory->write_access(READ, NODE, node_nums->find(tree)->second, P);
         memory->write_distance(point_index(target), point_index(tree->p));
 
@@ -134,7 +135,7 @@ void KD_Tree::nearest_neighbour_rec(Point* target, std::pair<float, Point*> &cur
     //When returning to caller function, pop index off stack and write it to the trace file
     call_stack->pop();
     if (!call_stack->empty()) {
-        memory->write_access(READ, STACK,  call_stack->top(), 0);
+        memory->write_access(READ, STACK,  call_stack->top(), 40);
     }
 }
 //Recursive function to find the closest point in the tree to the given point, could be modified to find closest n points
@@ -347,8 +348,8 @@ void KD_Tree::build_tree(std::string file_in) {
         std::string line;
         float value;
         //kd-tree dimension found
-        getline(fin, line);
-        num_dimensions = stoi(line);
+        //getline(fin, line);
+        num_dimensions = 3;
         //Each line of file is read
         while (getline(fin, line)) {
             std::istringstream sin(line);
@@ -361,7 +362,6 @@ void KD_Tree::build_tree(std::string file_in) {
             insert(values);
             num_nodes++;
         }
-        print();
         std::vector<Point*> point_list;
         std::vector<Node*> node_list;
         //Points and nodes are recursively assigned indices, and added to vectors    

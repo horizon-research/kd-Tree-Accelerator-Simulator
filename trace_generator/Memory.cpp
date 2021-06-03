@@ -8,7 +8,7 @@ void Memory::write_access(int access_type, int data_type, int index, int offset)
         }
         //Write to file, for type: 0=point, 1=node, 2=call
         else {
-            *fout << "R " << data_type << " 0x" << std::setw(6) << std::setfill('0') << std::hex << address << std::endl;
+            *fout << "R " << data_type << " 0x" << std::setw(12) << std::setfill('0') << std::hex << address << std::endl;
         }
     }
 }
