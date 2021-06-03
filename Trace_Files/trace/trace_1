@@ -60,13 +60,23 @@ R 0 0x000020
 I
 I
 I
+I
+I
+I
 R 0 0x0000b4
 R 0 0x000024
 I
 I
 I
+I
+I
+I
 R 0 0x0000b8
 R 0 0x000028
+I
+I
+I
+I
 I
 I
 I
@@ -115,6 +125,11 @@ I
 R 2 0x0002f8
 I
 R 2 0x000288
+R 2 0x0002b4
+I
+I
+I
+I
 R 1 0x000128
 R 2 0x0002f8
 I
@@ -125,13 +140,23 @@ R 0 0x000040
 I
 I
 I
+I
+I
+I
 R 0 0x0000b4
 R 0 0x000044
 I
 I
 I
+I
+I
+I
 R 0 0x0000b8
 R 0 0x000048
+I
+I
+I
+I
 I
 I
 I
@@ -149,13 +174,23 @@ R 0 0x000030
 I
 I
 I
+I
+I
+I
 R 0 0x0000b4
 R 0 0x000034
 I
 I
 I
+I
+I
+I
 R 0 0x0000b8
 R 0 0x000038
+I
+I
+I
+I
 I
 I
 I
@@ -169,13 +204,23 @@ R 0 0x000010
 I
 I
 I
+I
+I
+I
 R 0 0x0000b4
 R 0 0x000014
 I
 I
 I
+I
+I
+I
 R 0 0x0000b8
 R 0 0x000018
+I
+I
+I
+I
 I
 I
 I
@@ -231,13 +276,23 @@ R 0 0x000070
 I
 I
 I
+I
+I
+I
 R 0 0x0000b4
 R 0 0x000074
 I
 I
 I
+I
+I
+I
 R 0 0x0000b8
 R 0 0x000078
+I
+I
+I
+I
 I
 I
 I
@@ -259,13 +314,23 @@ R 0 0x000060
 I
 I
 I
+I
+I
+I
 R 0 0x0000b4
 R 0 0x000064
 I
 I
 I
+I
+I
+I
 R 0 0x0000b8
 R 0 0x000068
+I
+I
+I
+I
 I
 I
 I
@@ -279,13 +344,23 @@ R 0 0x000000
 I
 I
 I
+I
+I
+I
 R 0 0x0000b4
 R 0 0x000004
 I
 I
 I
+I
+I
+I
 R 0 0x0000b8
 R 0 0x000008
+I
+I
+I
+I
 I
 I
 I
