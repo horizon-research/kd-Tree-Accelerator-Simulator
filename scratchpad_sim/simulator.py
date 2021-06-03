@@ -115,7 +115,9 @@ class Simulator:
 
     def run(self):
         #As long as at least one PE is processing instructions, the simulation continues
-        while self.PEs_active():
+        active_queries = True
+        while active_queries:
+            print()
             for pe in self.PEs: 
                 #PE attempts to process curent trace line
                 pe.process_line(self, self.access_num)
@@ -127,8 +129,9 @@ class Simulator:
             #Accesses potentially removed from dependency lists
             for pe in self.PEs:
                 pe.remove_dependencies(processed_accesses)
-            self.cycles += 1
-
+            active_queries = self.PEs_active()
+            if active_queries:
+                self.cycles += 1
 
 
     
