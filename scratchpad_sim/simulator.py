@@ -104,11 +104,14 @@ class Simulator:
         print(f'Stack reads: {self.read_nums[2]}')
         print(f'Num conflicts: {self.num_conflicts}')
         print(f'Total number of stalled cycles: {self.stalled_cycles}')
-
+        sum = 0
         max = 0
         for pe in self.PEs:
+            print(pe.lines_processed)
+            sum += pe.lines_processed
             if pe.lines_processed > max:
                 max = pe.lines_processed
+        print(f'Total lines processed: {sum}')
         print(f'Ideal num cycles: {max}')
         print(f'Actual num cycles: {self.cycles}')
 
@@ -117,12 +120,11 @@ class Simulator:
         #As long as at least one PE is processing instructions, the simulation continues
         active_queries = True
         while active_queries:
-            print()
             for pe in self.PEs: 
                 #PE attempts to process curent trace line
                 pe.process_line(self, self.access_num)
                 #If the PE isn't busy, and there are remaining trace files to be processed, a new one is assigned to the PE
-                if (not pe.busy) and self.current_query < self.num_queries:
+                if not pe.busy:
                     self.assign_query(pe)
             #Accesses processed during this cycle are returned
             processed_accesses = self.scratchpad.clear_banks()
@@ -137,7 +139,10 @@ class Simulator:
     
     #Given PE is assigned a new query trace file
     def assign_query(self, pe):
+        
+
         if self.current_query < self.num_queries:
+            pe.current_line = 0
             pe.current_query = self.traces[self.current_query]
             pe.trace_length = len(pe.current_query)
             pe.busy = True
