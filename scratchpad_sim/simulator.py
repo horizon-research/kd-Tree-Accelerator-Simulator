@@ -101,19 +101,21 @@ class Simulator:
 
         print(f'Point reads: {self.read_nums[0]}')
         print(f'Node reads: {self.read_nums[1]}')
-        print(f'Stack reads: {self.read_nums[2]}')
+        print(f'Stack reads: {self.read_nums[2]}\n')
+
         print(f'Num conflicts: {self.num_conflicts}')
         print(f'Total number of stalled cycles: {self.stalled_cycles}')
         sum = 0
         max = 0
         for pe in self.PEs:
-            print(pe.lines_processed)
             sum += pe.lines_processed
             if pe.lines_processed > max:
                 max = pe.lines_processed
         print(f'Total lines processed: {sum}')
         print(f'Ideal num cycles: {max}')
         print(f'Actual num cycles: {self.cycles}')
+        print(f'Cycles lost stalling: {self.cycles - max}')
+
 
 
     def run(self):
@@ -122,10 +124,11 @@ class Simulator:
         while active_queries:
             for pe in self.PEs: 
                 #PE attempts to process curent trace line
-                pe.process_line(self, self.access_num)
-                #If the PE isn't busy, and there are remaining trace files to be processed, a new one is assigned to the PE
-                if not pe.busy:
-                    self.assign_query(pe)
+                if not pe.process_line(self, self.access_num):
+                    #If the PE isn't busy, and there are remaining trace files to be processed, a new one is assigned to the PE
+                    if not pe.busy:
+                        self.assign_query(pe)
+                    pe.process_line(self, self.access_num)
             #Accesses processed during this cycle are returned
             processed_accesses = self.scratchpad.clear_banks()
             #Accesses potentially removed from dependency lists
