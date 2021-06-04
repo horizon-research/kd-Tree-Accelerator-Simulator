@@ -8,10 +8,10 @@ Point::Point(int num_dimensions_in, float values_in[]) {
         dimension_values[i] = values_in[i];
     }
 }
-int Point::get_size() {
+int Point::get_size() const {
     return num_dimensions;
 }
-float Point::dimension_value(int d) {
+float Point::dimension_value(int d) const{
     if (d >= num_dimensions) {
         return -1;
     }
@@ -41,6 +41,14 @@ std::ostream& operator<<(std::ostream& os, const Point& p) {
     os << p.dimension_values[p.num_dimensions - 1] << "]";
     return os;
 }
+Point& Point::operator=(const Point& p) {
+    num_dimensions = p.get_size();
+    for (int i = 0; i < num_dimensions; i++) {
+        dimension_values[i] = p.dimension_value(i);
+    }
+    return *this;
+}
+
 Point::~Point() {
     delete[] dimension_values;
 }

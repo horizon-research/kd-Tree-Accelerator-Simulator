@@ -18,15 +18,15 @@ KD_Tree::~KD_Tree() {
     free_node(root);
 }
 //Calls recursive insert function
-void KD_Tree::insert(float values_in[]) {
-    root = insert_rec(root, 0, values_in);
+void KD_Tree::insert(Point &p_in) {
+    root = insert_rec(root, 0, p_in);
 }
 //Adds point to proper location in tree, based on comparison with each nodes splitting plane value
-Node* KD_Tree::insert_rec(Node* tree, int level, float values_in[]) {
+Node* KD_Tree::insert_rec(Node* tree, int level, Point &p_in) {
     //End of tree, new node created
     if (tree == NULL) {
         tree = new Node();
-        tree->p = new Point(num_dimensions, values_in);
+        tree->p = p_in.copy();
         return tree;
     }
     else {
@@ -34,11 +34,11 @@ Node* KD_Tree::insert_rec(Node* tree, int level, float values_in[]) {
         int current_value = tree->p->dimension_value(splitting_plane);
         //If the desired point's splitting plane value is less than the current node's move to the left child.
         //Otherwise, move to the right child
-        if (current_value > values_in[splitting_plane]) {
-            tree->left = insert_rec(tree->left, level + 1, values_in);
+        if (current_value > p_in.dimension_value(splitting_plane)) {
+            tree->left = insert_rec(tree->left, level + 1, p_in);
         }
         else {
-            tree->right = insert_rec(tree->right, level + 1, values_in);
+            tree->right = insert_rec(tree->right, level + 1, p_in);
         }
         return tree;
     }   
@@ -347,9 +347,8 @@ void KD_Tree::build_tree(std::string file_in) {
     if (fin.is_open()) {
         std::string line;
         float value;
-        //kd-tree dimension found
-        //getline(fin, line);
         num_dimensions = 3;
+        std::vector<Point*> points;
         //Each line of file is read
         while (getline(fin, line)) {
             std::istringstream sin(line);
@@ -359,9 +358,13 @@ void KD_Tree::build_tree(std::string file_in) {
                 sin >> value;
                 values[i] = value;
             }
-            insert(values);
+            Point* p = new Point(3, values);
+            points.push_back(p);
             num_nodes++;
         }
+      
+        well_balanced_insert(points, 0, num_nodes - 1, 0);
+
         std::vector<Point*> point_list;
         std::vector<Node*> node_list;
         //Points and nodes are recursively assigned indices, and added to vectors    
@@ -377,6 +380,21 @@ void KD_Tree::build_tree(std::string file_in) {
     else {
         std::cout << "Error opening file" << std::endl;
         exit(0);
+    }
+}
+void KD_Tree::well_balanced_insert(std::vector<Point*> &vectors, int lo, int hi, int level) {
+    if (hi >= lo) {
+        int dimension = level % 3;
+        auto comp = [dimension](const Point* a, const Point* b) {return a->dimension_value(dimension) < b->dimension_value(dimension);};
+        auto it_lo = vectors.begin() + lo;
+        auto it_hi = vectors.begin() + hi;
+        std::sort(it_lo, it_hi, comp);
+
+        int median = (hi + lo) / 2;
+        Point p = *vectors.at(median);
+        insert(p);
+        well_balanced_insert(vectors, lo, median - 1, level + 1);
+        well_balanced_insert(vectors, median + 1, hi, level + 1);
     }
 }
 //Returns index for given node

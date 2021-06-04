@@ -7,7 +7,7 @@
 #include <sstream>
 #include <vector>
 #include <queue>
-#include <set>
+#include <algorithm>
 #include "Memory.h"
 
 #define NEG_FLT_MAX -1 * FLT_MAX
@@ -32,7 +32,7 @@ class KD_Tree {
 
 
     void free_node(Node* tree);
-    Node* insert_rec(Node* tree, int level, float values_in[]);
+    Node* insert_rec(Node* tree, int level, Point &p_in);
     void print_rec(Node* tree, int level);
     
     void knn_rec(Point& target, std::priority_queue<std::pair<float, Point*>>& max_heap, Node* tree, unsigned int k, int level);
@@ -50,13 +50,14 @@ class KD_Tree {
     void build_tree(std::string file_in);
     int node_index(Node* n);
     int point_index(Point* p);
+    void well_balanced_insert(std::vector<Point*> &vectors, int hi, int lo, int level);
 
 
 
     public:
         KD_Tree(std::string file_in);
         int get_num_dimensions();
-        void insert(float values_in[]);
+        void insert(Point &p_in);
         void print();
         std::vector<Point*> knn_search(Point& target_in, unsigned int k);
         std::vector<Point*> range_search(float range[3][2]);
