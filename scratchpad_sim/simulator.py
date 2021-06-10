@@ -1,16 +1,17 @@
-from scratchpad import Scratchpad
+from .scratchpad import Scratchpad
+from .kd_tree import KD_Tree
+from .kd_tree import Point
+
+from .query import Query
 import sys
+import queue
 
 #Processing Engine class, represents current status as well as curent dependencies
 class PE:
     def __init__(self):
         self.stalled = False
         self.busy = False
-        self.lines_processed = 0
-        self.current_line = 0
-        self.trace_length = 0
-        self.current_query = []
-        self.dependencies = set()
+        self.current_query = None
     #Attempts to process next instruction
     def process_line(self, sim, access_num):
         #If the end of the current trace file has been reached, the PE is no longer busy, and is ready for a new trace
@@ -51,35 +52,24 @@ class PE:
     def remove_dependencies(self, accesses):
         for access in accesses:
             self.dependencies.discard(access)
-        
+
+
         
 
-#Represents high lvel simulator, contains PEs, as well as statistics on the current simulation
+#Represents high level simulator, contains PEs, as well as statistics on the current simulation
 class Simulator:
-    def __init__(self, num_banks, size, trace_file, num_PEs):
-        self.scratchpad = Scratchpad(num_banks, size)
-        self.traces = []
+    def __init__(self, kd_tree_in, queries_in):
+        self.scratchpad = None
         
-            
-        queries_left = True
-        self.num_queries = 0
-        self.current_query = 0
-        #Query traces are opened
-        while queries_left:
-            try:
-                fin = open("../Trace_Files/" + trace_file + "/" + trace_file + "_" + str(self.num_queries))
-                self.traces.append(fin.readlines())
-                self.num_queries += 1
-            except:
-                queries_left = False
-            
-        self.num_PEs = num_PEs
+        self.kd_tree = kd_tree_in
+        self.queries = queries_in
+        self.query_index = 0
+
+        self.active_queries = []
+        self.num_PEs = 0
         self.PEs = []
         #PEs are initally assigned traces
-        for i in range(num_PEs):
-            pe = PE()
-            self.assign_query(pe)
-            self.PEs.append(pe) 
+        
 
 
         self.access_num = 0
@@ -89,6 +79,12 @@ class Simulator:
         self.read_nums = [0, 0, 0]
         self.write_nums = [0, 0, 0]
         self.cycles = 0
+
+    def initialize_PEs(self, num_PEs):
+        self.PEs.clear()
+        for i in range(num_PEs):
+            pe = PE()
+            self.PEs.append(pe)
 
 
     def print_results(self):
@@ -118,9 +114,9 @@ class Simulator:
 
 
 
-    def run(self):
+    def run_sim(self, kd_tree, queries):
         #As long as at least one PE is processing instructions, the simulation continues
-        active_queries = True
+        
         while active_queries:
             for pe in self.PEs: 
                 #PE attempts to process curent trace line
@@ -142,14 +138,17 @@ class Simulator:
     
     #Given PE is assigned a new query trace file
     def assign_query(self, pe):
-        
-
-        if self.current_query < self.num_queries:
-            pe.current_line = 0
-            pe.current_query = self.traces[self.current_query]
-            pe.trace_length = len(pe.current_query)
-            pe.busy = True
-            self.current_query += 1
+        if self.query_index < self.num_queries:
+            line = self.queries[self.query_index]
+            q = Query()
+            self.kd_tree.query_trace = q
+            self.active_queries.append(q)
+            tokens = line.split()
+            if tokens[0] == "KNN":
+                p = Point(tokens[1:3])
+                k = tokens[4]
+                self.kd_tree.knn(p, k)
+                
     #Checks if there are any busy PEs
     def PEs_active(self):
         for pe in self.PEs:
@@ -160,13 +159,27 @@ class Simulator:
 
 #Takes input and runs on according simulator
 def main():
-    num_banks = int(sys.argv[1])
-    size = int(sys.argv[2])
-    num_units = int(sys.argv[3])
-    file = sys.argv[4]
-    s = Simulator(num_banks, size, file, num_units)
-    s.run()
-    s.print_results()
+    '''
+    kd_tree = KD_Tree(sys.argv[1])
+    queries = open(sys.argv[2]).readlines()
+    
+    s = Simulator(kd_tree, queries)
+    running = True
+    while running:
+        line = input("Enter accelerator configuration <Num banks> <Scratchpad size> <Num PEs> (\"quit\" to quit): ")
+        if line == "quit":
+            running = False
+        else:
+            tokens = line.split()
+            s.scratchpad = Scratchpad(tokens[0], tokens[1])
+            s.initialize_PEs(tokens[2])
+            s.run_sim()
+            s.print_results()
+    '''
+   
+
+
+        
 
     
 main()
