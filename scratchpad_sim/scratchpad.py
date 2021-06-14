@@ -58,7 +58,3 @@ class Scratchpad:
         return list
 
 
-#Potentially needed later
-class Line:
-    def __init__(self):
-        self.addresses_stored = []

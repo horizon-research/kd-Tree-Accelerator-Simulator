@@ -5,6 +5,7 @@ class Point:
 
     def dimension(self):
         return len(self.values)
+
     #Returns square of distance
     def distance(self, p):
         sum = 0
@@ -12,6 +13,7 @@ class Point:
             diff = self.values[i] - p.values[i]
             sum += diff**2
         return sum
+        
     #valuef for given dimension
     def dim_value(self, dim):
         return self.values[dim]
