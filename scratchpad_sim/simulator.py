@@ -6,7 +6,7 @@ from query import Query
 import sys
 import queue
 
-#Processing Engine class, represents current status as well as curent dependencies
+#Processing Engine class, contains Pe's current status, as well as thw query it's currently assigned to
 class PE:
     def __init__(self):
         self.stalled = False
@@ -16,25 +16,25 @@ class PE:
         self.line = ""
     #Attempts to process next instruction
     def process_line(self, sim, access_num):
-        #If the end of the current trace file has been reached, the PE is no longer busy, and is ready for a new trace
+        #If the PE isn't currently processing a query false is returned
         if not self.busy:
             return False
-
+        #Loads next instruction if not currently stalled
         if not self.stalled:
-            self.line = self.query.instructions.pop(0)
+            self.line = self.query.next_instruction()
         #Read
         if self.line[0] == "R":
             access_type = self.line[1]
             sim.read_nums[access_type] += 1
             address = self.line[2]
-            #Unique access number for this read is added to the dependencies for this PE, the next isntruction can't processed until it is resolved
+            #Unique access number for this read is added to the dependencies for the curret query, the next instruction can't processed until it is resolved
             self.query.add_dependency(access_num)
-            #If true is returned there was a conflict
+            #If true is returned there was a bank conflict
             if sim.scratchpad.read(address, access_num):
                 sim.num_conflicts += 1
             sim.access_num += 1
         #Computation
-        if self.line[0] == "I":
+        if self.line[0] == "C":
             #If there are any dependencies the computation can't be performed, and the PE is stalled
             if self.query.num_dependencies() > 0:
                 self.stalled = True

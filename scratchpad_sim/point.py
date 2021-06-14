@@ -1,17 +1,18 @@
+#Class representing point in space
 class Point:
     def __init__(self, values_in):
         self.values = [float(val) for val in values_in]
 
     def dimension(self):
         return len(self.values)
-
+    #Returns square of distance
     def distance(self, p):
         sum = 0
         for i in range(len(self.values)):
             diff = self.values[i] - p.values[i]
             sum += diff**2
         return sum
-
+    #valuef for given dimension
     def dim_value(self, dim):
         return self.values[dim]
 

@@ -15,4 +15,6 @@ class Query:
         self.dependencies.discard(dep)
     def finished(self):
         return len(self.instructions) == 0
+    def next_instruction(self):
+        return self.instructions.pop(0)
             

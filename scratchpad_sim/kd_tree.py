@@ -153,7 +153,7 @@ class KD_Tree:
 
     def computation(self, num):
         for _ in range(num):
-            self.query_trace.add("I")
+            self.query_trace.add("C")
     def write_distance(self, p1, p2):
         self.access(READ, POINT, self.point_indices[p1], X)
         self.access(READ, POINT, self.num_nodes, X)
@@ -168,7 +168,6 @@ class KD_Tree:
         self.computation(8)
     
 
-    #def build_tree():    
 
 
 class Node:
