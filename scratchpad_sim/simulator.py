@@ -97,9 +97,19 @@ class Simulator:
         print(f'Num PEs: {self.num_PEs}')
         config = 'Split' if self.split else 'Joint'
         print(f'Scratchpad Configuration: {config}\n')
-        for i in range(len(self.scratchpads)):
-            print(f'Scratchpad {i} size: {self.scratchpads[i].size}')
-            print(f'Scratchpad {i} banks: {self.scratchpads[i].num_banks}')
+        if self.split:
+            print(f'Point scratchpad size: {self.scratchpads[0].size}')
+            print(f'Point scratchpad banks: {self.scratchpads[0].num_banks}')
+
+            print(f'Node scratchpad size: {self.scratchpads[1].size}')
+            print(f'Node scratchpad banks: {self.scratchpads[1].num_banks}')
+
+            print(f'Stack scratchpad size: {self.scratchpads[1].size}')
+            print(f'Stack scratchpad banks: {self.scratchpads[1].num_banks}')
+        else:
+            print(f'Scratchpad size: {self.scratchpads[0].size}')
+            print(f'Scratchpad banks: {self.scratchpads[0].num_banks}')
+
 
         print(f'\nNumber of queries processed: {self.num_queries}\n')
 

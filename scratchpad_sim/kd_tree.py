@@ -79,10 +79,11 @@ class KD_Tree:
     #The point is inserted when a null node is found
     def insert_rec(self, p, tree, level):
         if tree is None:
+            node = Node(p)
             self.point_indices[p] = self.num_nodes
-            self.node_indices[tree] = self.num_nodes
+            self.node_indices[node] = self.num_nodes
             self.num_nodes += 1
-            return Node(p)
+            return node
         else:
             splitting_plane = level % 3
             if p.dim_value(splitting_plane) < tree.p.dim_value(splitting_plane):
@@ -128,12 +129,14 @@ class KD_Tree:
             current_val = tree.p.dim_value(splitting_plane)
 
             #Current point's distance to query found
+            self.access(READ, STACK, call, 16)
             self.write_distance(tree.p, query)
             #Distance stored as negative to convert heap to max heap
             distance = -query.distance(tree.p)
             current = (distance, tree.p)
 
             #If there are already k points in heap, add current point only if its distance is less than the farthest away point in heap
+            self.access(READ, STACK, call, 8)
             if len(current_best) == k:
                 if distance < current_best[0][0]:
                     heapq.heapreplace(current_best, current)
@@ -142,10 +145,12 @@ class KD_Tree:
                 heapq.heappush(current_best, current)
                 
             #If target value is less than current, take left subtree
-            self.access(READ, POINT, self.num_nodes, 0)
-            self.access(READ, POINT, self.point_indices[tree.p], 0)
+            self.access(READ, NODE, self.node_indices[tree], P)
+            self.access(READ, POINT, self.num_nodes, splitting_plane * 4)
+            self.access(READ, POINT, self.point_indices[tree.p], splitting_plane * 4)
             self.computation(1)
             if  query_val < current_val:
+                self.access(READ, NODE, self.node_indices[tree], LEFT)
                 self.stack.append(call + 1)
                 self.computation(1)
                 self.knn_rec(query, current_best, k, tree.left, level + 1)
@@ -156,11 +161,13 @@ class KD_Tree:
                 self.access(READ, POINT, self.point_indices[tree.p], 0)
                 self.computation(2)
                 if (query_val + current_best[0][0] > current_val or k > len(current_best)):
+                    self.access(READ, NODE, self.node_indices[tree], RIGHT)
                     self.stack.append(call + 1)
                     self.computation(1)
                     self.knn_rec(query, current_best, k, tree.right, level + 1)
             #If target value is greater than current, take right subtree
             else:
+                self.access(READ, NODE, self.node_indices[tree], RIGHT)
                 self.stack.append(call + 1)
                 self.computation(1)
                 self.knn_rec(query, current_best, k, tree.right, level + 1)
@@ -171,6 +178,7 @@ class KD_Tree:
                 self.access(READ, POINT, self.point_indices[tree.p], 0)
                 self.computation(2)
                 if (query_val - current_best[0][0] < current_val or k > len(current_best)):
+                    self.access(READ, NODE, self.node_indices[tree], LEFT)
                     self.stack.append(call + 1)
                     self.computation(1)
                     self.knn_rec(query, current_best, k, tree.left, level + 1)
@@ -182,7 +190,6 @@ class KD_Tree:
         address = (data_sizes[data_type] * index) + offset
         if not self.split:
             address += self.memory_ptrs[data_type]
-        print(address)
         self.query_trace.add(("R", data_type, address))
 
     #Adds desired number of non access instructions to trace
