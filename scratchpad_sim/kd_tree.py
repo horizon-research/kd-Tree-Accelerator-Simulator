@@ -177,8 +177,3 @@ class Node:
             self.right = None
             self.p = p
 
-tree = KD_Tree("test")
-tree.print_tree()
-tree.query_trace = Query()
-print(tree.knn(Point([1,1,1]), 2))
-print(tree.query_trace.traces)

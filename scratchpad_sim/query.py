@@ -1,10 +1,18 @@
 import queue
 class Query:
     def __init__(self):
-        self.traces = []
+        self.instructions = []
         self.dependencies = set()
-        self.current_line = 0
+        self.length = 0
     def add(self, instruction):
-        self.traces.append(instruction)
-    
+        self.instructions.append(instruction)
+        self.length += 1
+    def add_dependency(self, dep):
+        self.dependencies.add(dep)
+    def num_dependencies(self):
+        return len(self.dependencies)
+    def remove_dependency(self, dep):
+        self.dependencies.discard(dep)
+    def finished(self):
+        return len(self.instructions) == 0
             
