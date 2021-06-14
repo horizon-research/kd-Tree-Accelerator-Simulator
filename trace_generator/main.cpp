@@ -1,6 +1,6 @@
 /*
  * Gunnar Hammonds
- * Basic implementation of Kd tree as well as nearest neighbour search
+ * Original trace generator, no longer used
  */
 
 
