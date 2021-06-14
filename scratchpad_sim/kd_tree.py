@@ -180,8 +180,9 @@ class KD_Tree:
     #Computes address for given address based on data type, data index, and offset, and writes it to the trace in a tuple
     def access(self, access_type, data_type, index, offset):
         address = (data_sizes[data_type] * index) + offset
-        if self.split:
+        if not self.split:
             address += self.memory_ptrs[data_type]
+        print(address)
         self.query_trace.add(("R", data_type, address))
 
     #Adds desired number of non access instructions to trace

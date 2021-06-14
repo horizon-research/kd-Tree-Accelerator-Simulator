@@ -147,15 +147,18 @@ class Simulator:
             pe.busy = True
             line = self.queries[self.query_index]
             q = Query()
-            self.query_index += 1
             self.kd_tree.query_trace = q
             self.active_queries.append(q)
             pe.query = q
+            self.query_index += 1
+
             tokens = line.split()
             if tokens[0] == "KNN":
-                p = Point(tokens[1:4])
-                k = int(tokens[4])
-                self.kd_tree.knn(p, k)
+               p = Point(tokens[1:4])
+               k = int(tokens[4])
+               self.kd_tree.knn(p, k)
+            else:
+                exit()
             return True
         else:
             return False
@@ -177,13 +180,11 @@ def main():
         scratchpads = []
         tokens = config.split()
         num_PEs = int(tokens[0])
-        split = False
         if tokens[1] == "JOINT":
             size = int(tokens[2])
             num_banks = int(tokens[3])
             scratchpads.append(Scratchpad(size, num_banks))
         elif tokens[1] == "SPLIT":
-            split = True
             for i in range(3):
                 size = int(tokens[2 + (i * 2)])
                 num_banks = int(tokens[3 + (i * 2)])
