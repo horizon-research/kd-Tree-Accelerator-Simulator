@@ -49,12 +49,6 @@ class PE:
                 sim.active_queries.remove(self.query)
                 self.query = None
 
-
-    
-
-
-        
-
 #Represents high level simulator, contains PEs, as well as statistics on the current simulation
 class Simulator:
     def __init__(self, kd_tree_in, queries_in):
