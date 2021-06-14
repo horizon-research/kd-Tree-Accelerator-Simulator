@@ -5,7 +5,7 @@ import queue
 #Represents scratchpad architecture
 class Scratchpad:
     
-    def __init__(self, banks_in, size_in):
+    def __init__(self,  size_in, banks_in):
         #Scratchpad line size
         self.linesize = 64
         self.num_banks = banks_in

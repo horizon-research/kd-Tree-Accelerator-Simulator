@@ -31,7 +31,11 @@ class PE:
                 #Unique access number for this read is added to the dependencies for the curret query, the next instruction can't processed until it is resolved
                 self.query.add_dependency(access_num)
                 #If true is returned there was a bank conflict
-                if sim.scratchpad.read(address, access_num):
+                if sim.split:
+                    scratchpad = sim.scratchpads[access_type]
+                else:
+                    scratchpad = sim.scratchpads[0]
+                if scratchpad.read(address, access_num):
                     sim.num_conflicts += 1
                 sim.access_num += 1
 
@@ -51,8 +55,11 @@ class PE:
 
 #Represents high level simulator, contains PEs, as well as statistics on the current simulation
 class Simulator:
-    def __init__(self, kd_tree_in, queries_in):
-        self.scratchpad = None
+    def __init__(self, kd_tree_in, queries_in, scratchpads):
+        self.split = False
+        self.scratchpads = scratchpads
+        if len(scratchpads) > 1:
+            self.split = True
         
         self.kd_tree = kd_tree_in
         self.queries = queries_in
@@ -66,7 +73,7 @@ class Simulator:
 
         #Unique number for each access processed
         self.access_num = 0
-
+        self.kd_tree.split = self.split
         #Statistics for simulations
         self.num_conflicts = 0
         self.stalled_cycles = 0
@@ -85,10 +92,16 @@ class Simulator:
     #Prints resulting statistics
     def print_results(self):
         print("\nSummary:")
-        print(f'Scratchpad size: {self.scratchpad.size} bytes')
-        print(f'Scratchpad banks: {self.scratchpad.num_banks}')
+        #print(f'Scratchpad size: {self.scratchpad.size} bytes')
+        #print(f'Scratchpad banks: {self.scratchpad.num_banks}')
         print(f'Num PEs: {self.num_PEs}')
-        print(f'Number of queries processed: {self.num_queries}\n')
+        config = 'Split' if self.split else 'Joint'
+        print(f'Scratchpad Configuration: {config}\n')
+        for i in range(len(self.scratchpads)):
+            print(f'Scratchpad {i} size: {self.scratchpads[i].size}')
+            print(f'Scratchpad {i} banks: {self.scratchpads[i].num_banks}')
+
+        print(f'\nNumber of queries processed: {self.num_queries}\n')
 
         print(f'Total accesses: {self.access_num}')
         print(f'Point reads: {self.read_nums[0]}')
@@ -120,9 +133,10 @@ class Simulator:
                 if not pe.busy:
                     self.assign_query(pe)
             #Accesses processed during this cycle are returned
-            processed_accesses = self.scratchpad.clear_banks()
-            #Accesses potentially removed from dependency lists
-            self.clear_dependencies(processed_accesses)
+            for scratchpad in self.scratchpads:
+                processed_accesses = scratchpad.clear_banks()
+                #Accesses potentially removed from dependency lists
+                self.clear_dependencies(processed_accesses)
             self.cycles += 1
 
 
@@ -157,18 +171,27 @@ class Simulator:
 def main():
     kd_tree = KD_Tree("../kdTree_Inputs/" + sys.argv[1])
     queries = open("../Query_Inputs/" + sys.argv[2]).readlines()
-    
-    running = True
-    while running:
-        line = input("Enter accelerator configuration <Num banks> <Scratchpad size> <Num PEs> (\"quit\" to quit): ")
-        if line == "quit":
-            running = False
-        else:
-            s = Simulator(kd_tree, queries)
-            tokens = line.split()
-            s.scratchpad = Scratchpad(int(tokens[0]), int(tokens[1]))
-            s.initialize_PEs(int(tokens[2]))
-            s.run_sim()
-            s.print_results()
+    configs = open("../Config_Inputs/" + sys.argv[3]).readlines()
+
+    for config in configs:
+        scratchpads = []
+        tokens = config.split()
+        num_PEs = int(tokens[0])
+        split = False
+        if tokens[1] == "JOINT":
+            size = int(tokens[2])
+            num_banks = int(tokens[3])
+            scratchpads.append(Scratchpad(size, num_banks))
+        elif tokens[1] == "SPLIT":
+            split = True
+            for i in range(3):
+                size = int(tokens[2 + (i * 2)])
+                num_banks = int(tokens[3 + (i * 2)])
+                scratchpads.append(Scratchpad(size, num_banks))
+
+        s = Simulator(kd_tree, queries, scratchpads)
+        s.initialize_PEs(num_PEs)
+        s.run_sim()
+        s.print_results()
    
 main()

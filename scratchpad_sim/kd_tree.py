@@ -36,7 +36,7 @@ class KD_Tree:
         self.node_indices = {}
         self.point_indices = {}
         self.query_trace = None
-
+        self.split = False
         #Array of points constructed from input file
         for line in lines:
             tokens = line.split()
@@ -179,7 +179,9 @@ class KD_Tree:
 
     #Computes address for given address based on data type, data index, and offset, and writes it to the trace in a tuple
     def access(self, access_type, data_type, index, offset):
-        address = self.memory_ptrs[data_type] + (data_sizes[data_type] * index) + offset
+        address = (data_sizes[data_type] * index) + offset
+        if self.split:
+            address += self.memory_ptrs[data_type]
         self.query_trace.add(("R", data_type, address))
 
     #Adds desired number of non access instructions to trace
