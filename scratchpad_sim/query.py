@@ -3,6 +3,7 @@ class Query:
     def __init__(self):
         self.instructions = []
         self.length = 0
+        self.stalled = False
 
     #Adds instruction tuple to list
     def add(self, instruction):

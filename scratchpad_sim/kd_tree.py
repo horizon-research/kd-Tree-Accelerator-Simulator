@@ -157,6 +157,7 @@ class KD_Tree:
             current = (distance, tree.p)
 
             #If there are already k points in heap, add current point only if its distance is less than the farthest away point in heap
+            self.computation(4)
             if len(current_best) == k:
                 if distance < current_best[0][0]:
                     heapq.heapreplace(current_best, current)
@@ -176,6 +177,7 @@ class KD_Tree:
                 #BT
                 #If the current best distance + the target value is greater than the current value,
                 #it is possible that the closest point could be contained in right subtree, so it is searched as well
+                self.computation(6)
                 if (query_val + current_best[0][0] > current_val or k > len(current_best)):
                     self.access(READ, NODE, self.node_indices[tree], RIGHT)
                     self.stack.append(call + 1)
@@ -189,6 +191,7 @@ class KD_Tree:
                 #BT
                 #If the target value - the current best distance is less than than the current value,
                 #it is possible that the closest point could be contained in the left subtree, so it is searched as well
+                self.computation(6)
                 if (query_val - current_best[0][0] < current_val or k > len(current_best)):
                     self.stack.append(call + 1)
                     self.knn_rec(query, current_best, k, tree.left, level + 1)
