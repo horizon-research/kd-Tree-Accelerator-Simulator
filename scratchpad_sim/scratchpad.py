@@ -24,7 +24,8 @@ class Scratchpad:
 
         self.num_lines = self.size / self.linesize
         #Queue datastrcuture created for each bank, represents the memory acceses still waiting to be processed
-        self.bank_reads = [queue.Queue() for i in range(self.num_banks)]
+        self.bank_reads = [False for i in range(self.num_banks)]
+        print(self.bank_reads)
     
     #Bank is determined from physical address
     def get_bank(self, address):
@@ -43,18 +44,16 @@ class Scratchpad:
         conflict = False
         bank = self.get_bank(address)
         #If respective bank queue is not empty, a conflict has occured
-        if not self.bank_reads[bank].empty():
+        if self.bank_reads[bank]:
             conflict = True
-        self.bank_reads[bank].put(access_num)
+        else:
+            self.bank_reads[bank] = True
         return conflict
 
 
     #Removes first element in each bank queue, representing the reads processed for this cycle
     def clear_banks(self):
-        list = []
-        for queue in self.bank_reads:
-            if not queue.empty():
-                list.append(queue.get())
-        return list
+        for i in range(self.num_banks):
+            self.bank_reads[i] = False
 
 

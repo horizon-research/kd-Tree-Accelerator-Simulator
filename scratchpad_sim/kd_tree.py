@@ -12,12 +12,12 @@ NODE = 1
 STACK = 2
 END = 3
 X = 0
-Y = 1
-Z = 2
+Y = 4
+Z = 8
 
 P = 0
-LEFT = 1
-RIGHT = 2
+LEFT = 8
+RIGHT = 16
 
 #Represents 3d kd-Tree data structure, creates well balanced tree from inputted points
 class KD_Tree:  
@@ -51,10 +51,6 @@ class KD_Tree:
         self.memory_ptrs[NODE] = data_sizes[POINT] * (self.num_nodes + 1)
         self.memory_ptrs[STACK] =self.memory_ptrs[NODE] + (data_sizes[NODE] *self.num_nodes)
         self.memory_ptrs[END] =self.memory_ptrs[STACK] + (data_sizes[STACK] *self.num_nodes)
-
-
-
-        
 
     #Recursivley builds tree by selecting median points from each dimension
     def build_tree(self, points, lo, hi, level):
@@ -91,6 +87,9 @@ class KD_Tree:
             else:
                 tree.right = self.insert_rec(p, tree.right, level + 1)
             return tree
+
+    
+
     #Prints tree
     def print_tree(self):
         self.print_tree_rec(self.root, 0)

@@ -28,8 +28,7 @@ class PE:
                 access_type = self.line[1]
                 sim.read_nums[access_type] += 1
                 address = self.line[2]
-                #Unique access number for this read is added to the dependencies for the curret query, the next instruction can't processed until it is resolved
-                self.query.add_dependency(access_num)
+                
                 #If true is returned there was a bank conflict
                 if sim.split:
                     scratchpad = sim.scratchpads[access_type]
@@ -37,15 +36,12 @@ class PE:
                     scratchpad = sim.scratchpads[0]
                 if scratchpad.read(address, access_num):
                     sim.num_conflicts += 1
-                sim.access_num += 1
-
-            #Computation
-            if self.line[0] == "C":
-                #If there are any dependencies the computation can't be performed, and the PE is stalled
-                if self.query.num_dependencies() > 0:
                     self.stalled = True
                 else:
                     self.stalled = False
+                
+
+            #During a computation cycle, nothing has to be tracked by the simulator
 
             #If there are no more instructions to be processed, the query is removed from the list of active queries, and the PE is ready to be assigned a new query
             if self.query.finished():
@@ -144,9 +140,7 @@ class Simulator:
                     self.assign_query(pe)
             #Accesses processed during this cycle are returned
             for scratchpad in self.scratchpads:
-                processed_accesses = scratchpad.clear_banks()
-                #Accesses potentially removed from dependency lists
-                self.clear_dependencies(processed_accesses)
+                scratchpad.clear_banks()
             self.cycles += 1
 
 

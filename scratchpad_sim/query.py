@@ -2,7 +2,6 @@
 class Query:
     def __init__(self):
         self.instructions = []
-        self.dependencies = set()
         self.length = 0
 
     #Adds instruction tuple to list
