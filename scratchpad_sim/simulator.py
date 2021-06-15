@@ -160,7 +160,7 @@ class Simulator:
             if tokens[0] == "KNN":
                p = Point(tokens[1:4])
                k = int(tokens[4])
-               self.kd_tree.knn(p, k)
+               print(self.kd_tree.knn(p, k))
             else:
                 exit()
             return True

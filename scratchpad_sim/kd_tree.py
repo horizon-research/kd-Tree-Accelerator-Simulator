@@ -116,11 +116,33 @@ class KD_Tree:
     #if any point encountered along the way is closer than the current closest point,
     #that point is then set to be closest point
     def knn_rec(self, query, current_best, k, tree, level):
+        
         call = self.stack[-1]
-        self.access(READ, STACK, call, 16)
+        #RS
+        self.access(READ, STACK, call, 12) #k
+        self.access(READ, STACK, call, 16) #level
+        self.access(READ, STACK, call, 20) #tree
+        self.access(READ, STACK, call, 28) #heap pointer
+        self.access(READ, STACK, call, 36) #return address
+
+
         if tree:
-            self.access(READ, STACK, call, 24)
-            self.computation(1)
+            #RQ
+            self.access(READ, STACK, call, 0) #X
+            self.access(READ, STACK, call, 4) #Y
+            self.access(READ, STACK, call, 8) #Z
+            #RN
+            self.access(READ, NODE, self.node_indices[tree], LEFT)
+            self.access(READ, NODE, self.node_indices[tree], RIGHT)
+            self.access(READ, NODE, self.node_indices[tree], POINT)
+
+            #RP
+            self.access(READ, POINT, self.point_indices[tree.p], X)
+            self.access(READ, POINT, self.point_indices[tree.p], Y)
+            self.access(READ, POINT, self.point_indices[tree.p], Z)
+
+            #CD
+            self.computation(2)
             splitting_plane = level % self.num_dimensions
 
             #Values found for current point and target point
@@ -128,58 +150,47 @@ class KD_Tree:
             current_val = tree.p.dim_value(splitting_plane)
 
             #Current point's distance to query found
-            self.access(READ, STACK, call, 16)
-            self.write_distance(tree.p, query)
+            
             #Distance stored as negative to convert heap to max heap
+            self.computation(18)
             distance = -query.distance(tree.p)
             current = (distance, tree.p)
 
             #If there are already k points in heap, add current point only if its distance is less than the farthest away point in heap
-            self.access(READ, STACK, call, 8)
             if len(current_best) == k:
                 if distance < current_best[0][0]:
                     heapq.heapreplace(current_best, current)
             #Otherwise, add
             else:
                 heapq.heappush(current_best, current)
-                
+
+
+            #NT 
             #If target value is less than current, take left subtree
-            self.access(READ, NODE, self.node_indices[tree], P)
-            self.access(READ, POINT, self.num_nodes, splitting_plane * 4)
-            self.access(READ, POINT, self.point_indices[tree.p], splitting_plane * 4)
-            self.computation(1)
+            self.computation(2)
             if  query_val < current_val:
-                self.access(READ, NODE, self.node_indices[tree], LEFT)
                 self.stack.append(call + 1)
                 self.computation(1)
                 self.knn_rec(query, current_best, k, tree.left, level + 1)
 
+                #BT
                 #If the current best distance + the target value is greater than the current value,
                 #it is possible that the closest point could be contained in right subtree, so it is searched as well
-                self.access(READ, POINT, self.num_nodes, 0)
-                self.access(READ, POINT, self.point_indices[tree.p], 0)
-                self.computation(2)
                 if (query_val + current_best[0][0] > current_val or k > len(current_best)):
                     self.access(READ, NODE, self.node_indices[tree], RIGHT)
                     self.stack.append(call + 1)
-                    self.computation(1)
                     self.knn_rec(query, current_best, k, tree.right, level + 1)
             #If target value is greater than current, take right subtree
             else:
-                self.access(READ, NODE, self.node_indices[tree], RIGHT)
                 self.stack.append(call + 1)
                 self.computation(1)
                 self.knn_rec(query, current_best, k, tree.right, level + 1)
 
+                #BT
                 #If the target value - the current best distance is less than than the current value,
                 #it is possible that the closest point could be contained in the left subtree, so it is searched as well
-                self.access(READ, POINT, self.num_nodes, 0)
-                self.access(READ, POINT, self.point_indices[tree.p], 0)
-                self.computation(2)
                 if (query_val - current_best[0][0] < current_val or k > len(current_best)):
-                    self.access(READ, NODE, self.node_indices[tree], LEFT)
                     self.stack.append(call + 1)
-                    self.computation(1)
                     self.knn_rec(query, current_best, k, tree.left, level + 1)
 
         self.access(READ, STACK, self.stack.pop(), 32)
@@ -208,7 +219,9 @@ class KD_Tree:
 
         self.access(READ, POINT, self.point_indices[p1], Z)
         self.access(READ, POINT, self.num_nodes, Z)
-        self.computation(8)
+        self.computation(6)
+    def write_stage(self):
+        self.query_trace.add("~~~~~~")
     
 #Internal node class
 class Node:
