@@ -45,12 +45,12 @@ class KD_Tree:
 
         #Well balanced tree created from points
         self.build_tree(points, 0, len(points) - 1, 0)
-
+        self.tree_depth = self.depth(self.root, 0)
         #Pointers in memory to start of scratchpad sections are calculated
         self.memory_ptrs = [0, 0, 0, 0]
         self.memory_ptrs[NODE] = data_sizes[POINT] * (self.num_nodes + 1)
         self.memory_ptrs[STACK] =self.memory_ptrs[NODE] + (data_sizes[NODE] *self.num_nodes)
-        self.memory_ptrs[END] =self.memory_ptrs[STACK] + (data_sizes[STACK] *self.num_nodes)
+        self.memory_ptrs[END] =self.memory_ptrs[STACK] + (data_sizes[STACK] * self.tree_depth)
 
     #Recursivley builds tree by selecting median points from each dimension
     def build_tree(self, points, lo, hi, level):
@@ -87,6 +87,14 @@ class KD_Tree:
             else:
                 tree.right = self.insert_rec(p, tree.right, level + 1)
             return tree
+    def depth(self, tree, level):
+        if tree:
+            left_depth = self.depth(tree.left, level + 1)
+            right_depth = self.depth(tree.right, level + 1)
+            return left_depth if left_depth > right_depth else right_depth
+        else:
+            return level
+
 
     
 
