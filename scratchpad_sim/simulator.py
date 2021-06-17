@@ -110,8 +110,9 @@ class PE:
             
 #Represents high level simulator, contains PEs, as well as statistics on the current simulation
 class Simulator:
-    def __init__(self, kd_tree_in, queries_in, scratchpads):
+    def __init__(self, kd_tree_in, queries_in, scratchpads, pipelined):
         self.split = False
+        self.pipelined = pipelined
         self.scratchpads = scratchpads
         if len(scratchpads) > 1:
             self.split = True
@@ -150,6 +151,7 @@ class Simulator:
     def print_results(self):
         print("\nSummary:")
         print(f'Num PEs: {self.num_PEs}')
+        print(f'Pipelined: {self.pipelined}')
         config = 'Split' if self.split else 'Joint'
         print(f'Scratchpad Configuration: {config}\n')
         if self.split:
@@ -189,7 +191,7 @@ class Simulator:
         print(self.bcycles)
 
     #Starts processing of queries, managing PEs to ensure they always have an assigned query if possible
-    def run_sim(self, pipelined):
+    def run_sim(self):
         #As long as at least one PE is processing instructions, the simulation continues
         while len(self.active_queries) > 0:
             for pe in self.PEs: 
@@ -202,9 +204,9 @@ class Simulator:
                 #If the PE isn't busy, and there are remaining trace files to be processed, a new one is assigned to the PE
                 
 
-                if pe.pipeline_open(pipelined):
+                if pe.pipeline_open(self.pipelined):
                     self.assign_query(pe, False)
-                if pe.backtrack_pipeline_open(pipelined):
+                if pe.backtrack_pipeline_open(self.pipelined):
                     self.assign_query(pe, True)
             #Accesses processed during this cycle are returned
             for scratchpad in self.scratchpads:
@@ -276,9 +278,9 @@ def main():
                 num_banks = int(tokens[4 + (i * 2)])
                 scratchpads.append(Scratchpad(size, num_banks))
 
-        s = Simulator(kd_tree, queries, scratchpads)
+        s = Simulator(kd_tree, queries, scratchpads, pipelined)
         s.initialize_PEs(num_PEs)
-        s.run_sim(pipelined)
+        s.run_sim()
         s.print_results()
    
 main()
