@@ -145,14 +145,6 @@ class Simulator:
                 q = self.backtrack_queue.pop()
                 pe.backtrack_pipeline[0] = q
            
-                
-    #If any of the active queries had an access processed by the scratchpad, it is removed from its list of dependencies
-    def clear_dependencies(self, deps):
-        for dep in deps:
-            for query in self.active_queries:
-                query.remove_dependency(dep)
-
-
 #Takes input and runs on according simulator
 def main():
     kd_tree = KD_Tree("../kdTree_Inputs/" + sys.argv[1])
