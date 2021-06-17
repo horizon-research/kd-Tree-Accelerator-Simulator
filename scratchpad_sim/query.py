@@ -28,10 +28,9 @@ class Query:
         
     #Removes instruction from top of list and returns it
     def next_instruction(self):
-        if not self.stalled:
-            self.instructions.pop(0)
         if not self.finished():
-            return self.instructions[0]
+            if not self.stalled:
+                self.current_instruction = self.instructions.pop(0)
         else:
             return "?"
         

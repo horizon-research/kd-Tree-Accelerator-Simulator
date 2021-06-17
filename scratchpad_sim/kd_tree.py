@@ -197,7 +197,6 @@ class KD_Tree:
                     self.stack.append(call + 1)
                     self.backtrack()
                     self.knn_rec(query, current_best, k, tree.right, level + 1)
-                    self.backtrack()
                 
             #If target value is greater than current, take right subtree
             else:
@@ -214,7 +213,6 @@ class KD_Tree:
                     self.stack.append(call + 1)
                     self.backtrack()
                     self.knn_rec(query, current_best, k, tree.left, level + 1)
-                    self.backtrack()
         #Return
         else:
             self.backtrack()

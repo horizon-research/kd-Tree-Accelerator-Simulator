@@ -1,3 +1,4 @@
+from os import pipe
 from scratchpad import Scratchpad
 from kd_tree import KD_Tree
 from kd_tree import Point
@@ -28,19 +29,22 @@ class PE:
                 pipeline_switch = self.process_line(sim, query_at_stage)
                 #If the query has not stalled, it can be advacned to the next stage of the pipeline
                 if not query_at_stage.stalled:
-                    pipeline[stage] = None
                     #If query has gone through entire pipeline it can be added back to queue
-                    if not pipeline_switch:
-                        if stage == size - 1:
-                            if query_at_stage.backtrack:
-                                sim.backtrack_queue.append(query_at_stage)
-                            else:
-                                sim.query_queue.append(query_at_stage)
-                        #Otherwise, if the next spot in the pipeline is not currently being occupied, move the query forward
-                        elif (pipeline[stage + 1] == None):
-                            pipeline[stage + 1] = query_at_stage
-                else:
-                    print("stall")
+                    if query_at_stage.finished():
+                        sim.active_queries.remove(query_at_stage)
+                        pipeline[stage] = None
+                    elif pipeline_switch or stage == size - 1:
+                        pipeline[stage] = None
+                        if query_at_stage.backtrack:
+                            sim.backtrack_queue.append(query_at_stage)
+                        else:
+                            sim.query_queue.append(query_at_stage)
+                    elif pipeline[stage + 1] == None:
+                        pipeline[stage] = None
+                        pipeline[stage + 1] = query_at_stage
+
+                        
+                
             
     def pipeline_open(self):
         return self.pipeline[0] == None
@@ -55,11 +59,8 @@ class PE:
             sim.stalled_cycles += 1
         else:
             self.lines_processed += 1
-
-        line = query.next_instruction()
-
+        line = query.current_instruction
         #Read
-        print(f'{query} {line}')
         if line[0] == "R":
             access_type = line[1]
             sim.read_nums[access_type] += 1
@@ -71,32 +72,26 @@ class PE:
             else:
                 scratchpad = sim.scratchpads[0]
             if scratchpad.read(address):
-                print("conflict")
                 sim.num_conflicts += 1
                 query.stalled = True
             else:
                 query.stalled = False
             
-        
-
-        #During a computation cycle, nothing has to be tracked by the simulator
-
-        #If there are no more instructions to be processed, the query is removed from the list of active queries, and the PE is ready to be assigned a new query
-        if query.instructions[0] == "BT" and not query.stalled:
-            print(query.instructions)
-            query.next_instruction()
-            if query.finished():
-                print("$$$$$")
-                sim.active_queries.remove(query)
-            elif not query.backtrack:
-                query.backtrack = True
-                sim.backtrack_queue.append(query)
-            else:
-                query.backtrack = False
-                sim.query_queue.append(query)
-            return True
+        if query.backtrack:
+            sim.bcycles += 1
         else:
-            return False
+            sim.ncycles += 1
+
+        pipeline_switch = False
+        #If there are no more instructions to be processed, the query is removed from the list of active queries, and the PE is ready to be assigned a new query
+        if query.instructions[0] == "BT":
+            if not query.stalled:
+                query.next_instruction()
+                pipeline_switch = True
+        if not query.stalled:
+            query.next_instruction()
+        return pipeline_switch                    
+        
             
                  
             
@@ -107,7 +102,8 @@ class Simulator:
         self.scratchpads = scratchpads
         if len(scratchpads) > 1:
             self.split = True
-        
+        self.ncycles = 0
+        self.bcycles = 0
         self.kd_tree = kd_tree_in
         self.queries = queries_in
         self.num_queries = len(queries_in)
@@ -176,7 +172,8 @@ class Simulator:
         print(f'Ideal num cycles: {max}')
         print(f'Actual num cycles: {self.cycles}')
         print(f'Cycles lost stalling: {self.cycles - max}\n')
-
+        print(self.ncycles)
+        print(self.bcycles)
 
     #Starts processing of queries, managing PEs to ensure they always have an assigned query if possible
     def run_sim(self):
@@ -184,13 +181,11 @@ class Simulator:
         while len(self.active_queries) > 0:
             for pe in self.PEs: 
                 #PE attempts to process curent trace line
-            
-                print(pe.pipeline)
-                print(pe.backtrack_pipeline)
+                #time.sleep(0.1)
+                
                 pe.manage_pipeline(self, pe.pipeline)
                 pe.manage_pipeline(self, pe.backtrack_pipeline)
                 
-                time.sleep(0.15)
                 #If the PE isn't busy, and there are remaining trace files to be processed, a new one is assigned to the PE
                 
 
@@ -223,13 +218,14 @@ class Simulator:
                 if tokens[0] == "KNN":
                     p = Point(tokens[1:4])
                     k = int(tokens[4])
-                    print(self.kd_tree.knn(p, k))
-                    for i in q.instructions:
-                        print(i)
-
+                    self.kd_tree.knn(p, k)
+                    
                 else:
                     print("Unknown query")
                     exit()
+                q.next_instruction()
+
+                
         else:
             if len(self.backtrack_queue) > 0:
                 q = self.backtrack_queue.pop()

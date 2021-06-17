@@ -25,7 +25,6 @@ class Scratchpad:
         self.num_lines = self.size / self.linesize
         #Queue datastrcuture created for each bank, represents the memory acceses still waiting to be processed
         self.bank_reads = [False for i in range(self.num_banks)]
-        print(self.bank_reads)
     
     #Bank is determined from physical address
     def get_bank(self, address):
@@ -36,7 +35,7 @@ class Scratchpad:
         return (address & self.offset_mask)
 
     #Read command is processed, determines whether there is a bank conflict for the given read, and returns true if the read was processed with no conflict
-    def read(self, address, access_num):
+    def read(self, address):
         if address > self.size:
             print("Read out of bounds")
             return False

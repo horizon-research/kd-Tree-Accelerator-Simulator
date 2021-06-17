@@ -39,6 +39,7 @@ class PE:
                     self.stalled = True
                 else:
                     self.stalled = False
+            
                 
 
             #During a computation cycle, nothing has to be tracked by the simulator
@@ -48,6 +49,8 @@ class PE:
                 self.busy = False
                 sim.active_queries.remove(self.query)
                 self.query = None
+            elif self.query.instructions[0] == "BT":
+                self.query.next_instruction()
 
 #Represents high level simulator, contains PEs, as well as statistics on the current simulation
 class Simulator:
@@ -66,7 +69,7 @@ class Simulator:
 
         self.num_PEs = 0
         self.PEs = []
-
+    
         #Unique number for each access processed
         self.access_num = 0
         self.kd_tree.split = self.split
