@@ -185,6 +185,12 @@ class KD_Tree:
             self.computation(2)
             if  query_val < current_val:
                 self.stack.append(call + 1)
+                self.access(WRITE, STACK, call + 1, 12)
+                self.access(WRITE, STACK, call + 1, 16)
+                self.access(WRITE, STACK, call + 1, 20)
+                self.access(WRITE, STACK, call + 1, 28)
+                self.access(WRITE, STACK, call + 1, 36)
+
                 self.computation(1)
                 self.knn_rec(query, current_best, k, tree.left, level + 1)
 
@@ -193,14 +199,23 @@ class KD_Tree:
                 #it is possible that the closest point could be contained in right subtree, so it is searched as well
                 self.computation(6)
                 if (query_val + current_best[0][0] > current_val or k > len(current_best)):
-                    print("@")
                     self.stack.append(call + 1)
+                    self.access(WRITE, STACK, call + 1, 12)
+                    self.access(WRITE, STACK, call + 1, 16)
+                    self.access(WRITE, STACK, call + 1, 20)
+                    self.access(WRITE, STACK, call + 1, 28)
+                    self.access(WRITE, STACK, call + 1, 36)
                     self.backtrack()
                     self.knn_rec(query, current_best, k, tree.right, level + 1)
                 
             #If target value is greater than current, take right subtree
             else:
                 self.stack.append(call + 1)
+                self.access(WRITE, STACK, call + 1, 12)
+                self.access(WRITE, STACK, call + 1, 16)
+                self.access(WRITE, STACK, call + 1, 20)
+                self.access(WRITE, STACK, call + 1, 28)
+                self.access(WRITE, STACK, call + 1, 36)
                 self.computation(1)
                 self.knn_rec(query, current_best, k, tree.right, level + 1)
 
@@ -209,8 +224,12 @@ class KD_Tree:
                 #it is possible that the closest point could be contained in the left subtree, so it is searched as well
                 self.computation(6)
                 if (query_val - current_best[0][0] < current_val or k > len(current_best)):
-                    print("!")
                     self.stack.append(call + 1)
+                    self.access(WRITE, STACK, call + 1, 12)
+                    self.access(WRITE, STACK, call + 1, 16)
+                    self.access(WRITE, STACK, call + 1, 20)
+                    self.access(WRITE, STACK, call + 1, 28)
+                    self.access(WRITE, STACK, call + 1, 36)
                     self.backtrack()
                     self.knn_rec(query, current_best, k, tree.left, level + 1)
         #Return
