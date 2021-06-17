@@ -25,7 +25,13 @@ Second, a simple simulation of an accelerator utilzing scratchpad memory, which 
   
  ### Configuration input format:
 - Confgiurations can be entered line by line, and will be processed in that order
-- Joint scratchpad format: \<Num PEs> JOINT \<SP size> \<SP banks>
-- Split scratchpad format: \<Num PEs> SPLIT \<Point SP size> \<Point SP banks> \<Node SP size> \<Node SP banks> \<Stack SP size> \<Stack SP banks>
+- There are a number of parameters for the acclerator which can be configured
+- Pipelined vs Non-Pipelined
+- Number of PEs
+- Joint vs Split Scratchpad (If split, scratchpad parameters will be entered once for each scratchpad)
+- Scratchpad Size (bytes)
+- Number of Scratchpad Banks
+- Example
+  > PIPELINED 4 SPLIT 512000 4 512000 4 512000 4
   
   
