@@ -34,7 +34,7 @@ class PE:
                     scratchpad = sim.scratchpads[access_type]
                 else:
                     scratchpad = sim.scratchpads[0]
-                if scratchpad.read(address, access_num):
+                if scratchpad.read(address):
                     sim.num_conflicts += 1
                     self.stalled = True
                 else:

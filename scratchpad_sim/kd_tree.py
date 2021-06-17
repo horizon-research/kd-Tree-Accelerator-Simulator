@@ -118,6 +118,7 @@ class KD_Tree:
         current_best = []
         #Recursive function modifies current best, when finished, it will contain the k nearest points in the tree, and their distances from the query point
         self.knn_rec(query, current_best, k, self.root, 0)
+        self.backtrack()
         return current_best
 
     #Traverses down path as if the target point were being inserted in the tree, 
@@ -136,20 +137,24 @@ class KD_Tree:
 
         if tree:
             #RQ
+            #self.query_trace.add("RQ")
             self.access(READ, STACK, call, 0) #X
             self.access(READ, STACK, call, 4) #Y
             self.access(READ, STACK, call, 8) #Z
             #RN
+            #self.query_trace.add("RN")
             self.access(READ, NODE, self.node_indices[tree], LEFT)
             self.access(READ, NODE, self.node_indices[tree], RIGHT)
             self.access(READ, NODE, self.node_indices[tree], POINT)
 
             #RP
+            #self.query_trace.add("RP")
             self.access(READ, POINT, self.point_indices[tree.p], X)
             self.access(READ, POINT, self.point_indices[tree.p], Y)
             self.access(READ, POINT, self.point_indices[tree.p], Z)
 
             #CD
+            #self.query_trace.add("CD")
             self.computation(2)
             splitting_plane = level % self.num_dimensions
 
@@ -176,6 +181,7 @@ class KD_Tree:
 
             #NT 
             #If target value is less than current, take left subtree
+            #self.query_trace.add("NT")
             self.computation(2)
             if  query_val < current_val:
                 self.stack.append(call + 1)
@@ -187,9 +193,12 @@ class KD_Tree:
                 #it is possible that the closest point could be contained in right subtree, so it is searched as well
                 self.computation(6)
                 if (query_val + current_best[0][0] > current_val or k > len(current_best)):
-                    self.access(READ, NODE, self.node_indices[tree], RIGHT)
+                    print("@")
                     self.stack.append(call + 1)
+                    self.backtrack()
                     self.knn_rec(query, current_best, k, tree.right, level + 1)
+                    self.backtrack()
+                
             #If target value is greater than current, take right subtree
             else:
                 self.stack.append(call + 1)
@@ -201,10 +210,16 @@ class KD_Tree:
                 #it is possible that the closest point could be contained in the left subtree, so it is searched as well
                 self.computation(6)
                 if (query_val - current_best[0][0] < current_val or k > len(current_best)):
+                    print("!")
                     self.stack.append(call + 1)
+                    self.backtrack()
                     self.knn_rec(query, current_best, k, tree.left, level + 1)
-
+                    self.backtrack()
+        #Return
+        else:
+            self.backtrack()
         self.access(READ, STACK, self.stack.pop(), 32)
+
 
     #Computes address for given address based on data type, data index, and offset, and writes it to the trace in a tuple
     def access(self, access_type, data_type, index, offset):
@@ -217,6 +232,8 @@ class KD_Tree:
     def computation(self, num):
         for _ in range(num):
             self.query_trace.add("C")
+    def backtrack(self):
+        self.query_trace.add("BT")
 
     #Writes all instructions for distance calculation
     def write_distance(self, p1, p2):

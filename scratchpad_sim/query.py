@@ -4,6 +4,7 @@ class Query:
         self.instructions = []
         self.length = 0
         self.stalled = False
+        self.backtrack = False
 
     #Adds instruction tuple to list
     def add(self, instruction):
@@ -27,5 +28,11 @@ class Query:
         
     #Removes instruction from top of list and returns it
     def next_instruction(self):
-        return self.instructions.pop(0)
+        if not self.stalled:
+            self.instructions.pop(0)
+        if not self.finished():
+            return self.instructions[0]
+        else:
+            return "?"
+        
             
