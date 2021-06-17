@@ -4,7 +4,7 @@ This repository contains the source code for a simple simulation of a point clou
 
 First, an implementation of the kd-Tree data structure, and some of its most commonly used search algorithms. When ran, these algorithms produce trace data of the simulated memory accesses performed during execution.    
 
-Second, a simple simulation of an accelerator utilzing scratchpad memory, which takes in the kd-Trace traces, and simulates the given memory accesses on an acclerator with a specified configuration.  
+Second, a simple simulation of an accelerator utilzing scratchpad memory, which takes in the kd-Tree traces, and simulates the given memory accesses on an acclerator with a specified configuration.  
 
 
 
