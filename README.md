@@ -1,4 +1,4 @@
-# kd-Tree Scratchpad Simulator
+# k-d Tree Scratchpad Simulator
 ---
 This repository contains the source code for a simple simulation of a point cloud accelerator. It consists of two basic parts:
 
