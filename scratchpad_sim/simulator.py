@@ -69,10 +69,9 @@ class Simulator:
 
         print(f'\nNumber of queries processed: {self.num_queries}\n')
 
-        print(f'Total accesses: {self.access_num}')
-        print(f'Point reads: {self.read_nums[0]}')
-        print(f'Node reads: {self.read_nums[1]}')
-        print(f'Stack reads: {self.read_nums[2]}\n')
+        print(f'Point accesses: {self.read_nums[0]}')
+        print(f'Node accesses: {self.read_nums[1]}')
+        print(f'Stack accesses: {self.read_nums[2]}\n')
 
         print(f'Num conflicts: {self.num_conflicts}')
         print(f'Total number of stalled cycles: {self.stalled_cycles}')
@@ -86,8 +85,6 @@ class Simulator:
         print(f'Ideal num cycles: {max}')
         print(f'Actual num cycles: {self.cycles}')
         print(f'Cycles lost stalling: {self.cycles - max}\n')
-        print(self.ncycles)
-        print(self.bcycles)
 
     #Starts processing of queries, managing PEs to ensure they always have an assigned query if possible
     def run_sim(self):
@@ -101,8 +98,6 @@ class Simulator:
                 pe.manage_pipeline(self, pe.backtrack_pipeline)
                 
                 #If the PE isn't busy, and there are remaining trace files to be processed, a new one is assigned to the PE
-                
-
                 if pe.pipeline_open(self.pipelined):
                     self.assign_query(pe, False)
                 if pe.backtrack_pipeline_open(self.pipelined):
@@ -138,8 +133,6 @@ class Simulator:
                     print("Unknown query")
                     exit()
                 q.next_instruction()
-
-                
         else:
             if len(self.backtrack_queue) > 0:
                 q = self.backtrack_queue.pop()
@@ -168,10 +161,11 @@ def main():
                 size = int(tokens[3 + (i * 2)])
                 num_banks = int(tokens[4 + (i * 2)])
                 scratchpads.append(Scratchpad(size, num_banks))
-
         s = Simulator(kd_tree, queries, scratchpads, pipelined)
         s.initialize_PEs(num_PEs)
+        s.kd_tree.calculate_address_space(s)
         s.run_sim()
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
         s.print_results()
    
 main()

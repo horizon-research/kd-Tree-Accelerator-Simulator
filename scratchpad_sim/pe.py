@@ -5,10 +5,9 @@ class PE:
         self.query = None
         self.busy = False
         self.lines_processed = 0
-        self.line = ""
-        self.pipeline_size = 46
+        self.pipeline_size = 36
         self.pipeline = [None for i in range(self.pipeline_size)]
-        self.backtrack_pipeline_size = 12
+        self.backtrack_pipeline_size = 8
         self.backtrack_pipeline = [None for i in range(self.backtrack_pipeline_size)]
     #Manages all queries currently in pipeline, processing their instrucitons for this cycle, and moving them through the pipeline if a stall hasn't occured
     def manage_pipeline(self, sim, pipeline):
@@ -67,7 +66,8 @@ class PE:
         #Read
         if line[0] == "R" or line[0] == "W":
             access_type = line[1]
-            sim.read_nums[access_type] += 1
+            if not query.stalled:
+                sim.read_nums[access_type] += 1
             address = line[2]
             
             #If true is returned there was a bank conflict

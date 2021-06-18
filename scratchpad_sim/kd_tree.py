@@ -3,7 +3,7 @@ from query import Query
 from point import Point
 
 #Constants which make trace writes more readable
-data_sizes = [16, 24, 32]
+data_sizes = [16, 24, 40]
 READ = 0
 WRITE = 1
 
@@ -42,16 +42,17 @@ class KD_Tree:
             tokens = line.split()
             p = Point([float(tokens[0]), float(tokens[1]), float(tokens[2])])
             points.append(p)
+        self.memory_ptrs = [0, 0, 0, 0]
 
         #Well balanced tree created from points
         self.build_tree(points, 0, len(points) - 1, 0)
         self.tree_depth = self.depth(self.root, 0)
+        
+    def calculate_address_space(self, sim):
         #Pointers in memory to start of scratchpad sections are calculated
-        self.memory_ptrs = [0, 0, 0, 0]
         self.memory_ptrs[NODE] = data_sizes[POINT] * (self.num_nodes + 1)
         self.memory_ptrs[STACK] =self.memory_ptrs[NODE] + (data_sizes[NODE] *self.num_nodes)
         self.memory_ptrs[END] =self.memory_ptrs[STACK] + (data_sizes[STACK] * self.tree_depth)
-
     #Recursivley builds tree by selecting median points from each dimension
     def build_tree(self, points, lo, hi, level):
         if lo <= hi:
@@ -128,33 +129,21 @@ class KD_Tree:
         
         call = self.stack[-1]
         #RS
-        self.access(READ, STACK, call, 12) #k
-        self.access(READ, STACK, call, 16) #level
-        self.access(READ, STACK, call, 20) #tree
-        self.access(READ, STACK, call, 28) #heap pointer
-        self.access(READ, STACK, call, 36) #return address
+        self.access(READ, STACK, call, 0) #Query
+        
+        
 
-
+        self.computation(1)
         if tree:
             #RQ
-            #self.query_trace.add("RQ")
-            self.access(READ, STACK, call, 0) #X
-            self.access(READ, STACK, call, 4) #Y
-            self.access(READ, STACK, call, 8) #Z
+            
             #RN
-            #self.query_trace.add("RN")
-            self.access(READ, NODE, self.node_indices[tree], LEFT)
-            self.access(READ, NODE, self.node_indices[tree], RIGHT)
-            self.access(READ, NODE, self.node_indices[tree], POINT)
+            self.access(READ, NODE, self.node_indices[tree], 0)
 
             #RP
-            #self.query_trace.add("RP")
-            self.access(READ, POINT, self.point_indices[tree.p], X)
-            self.access(READ, POINT, self.point_indices[tree.p], Y)
-            self.access(READ, POINT, self.point_indices[tree.p], Z)
+            self.access(READ, POINT, self.point_indices[tree.p], 0)
 
             #CD
-            #self.query_trace.add("CD")
             self.computation(2)
             splitting_plane = level % self.num_dimensions
 
@@ -185,11 +174,7 @@ class KD_Tree:
             self.computation(2)
             if  query_val < current_val:
                 self.stack.append(call + 1)
-                self.access(WRITE, STACK, call + 1, 12)
-                self.access(WRITE, STACK, call + 1, 16)
-                self.access(WRITE, STACK, call + 1, 20)
-                self.access(WRITE, STACK, call + 1, 28)
-                self.access(WRITE, STACK, call + 1, 36)
+                self.access(WRITE, STACK, call + 1, 0)
 
                 self.computation(1)
                 self.knn_rec(query, current_best, k, tree.left, level + 1)
@@ -200,22 +185,14 @@ class KD_Tree:
                 self.computation(6)
                 if (query_val + current_best[0][0] > current_val or k > len(current_best)):
                     self.stack.append(call + 1)
-                    self.access(WRITE, STACK, call + 1, 12)
-                    self.access(WRITE, STACK, call + 1, 16)
-                    self.access(WRITE, STACK, call + 1, 20)
-                    self.access(WRITE, STACK, call + 1, 28)
-                    self.access(WRITE, STACK, call + 1, 36)
+                    self.access(WRITE, STACK, call + 1, 0)
                     self.backtrack()
                     self.knn_rec(query, current_best, k, tree.right, level + 1)
                 
             #If target value is greater than current, take right subtree
             else:
                 self.stack.append(call + 1)
-                self.access(WRITE, STACK, call + 1, 12)
-                self.access(WRITE, STACK, call + 1, 16)
-                self.access(WRITE, STACK, call + 1, 20)
-                self.access(WRITE, STACK, call + 1, 28)
-                self.access(WRITE, STACK, call + 1, 36)
+                self.access(WRITE, STACK, call + 1, 0)
                 self.computation(1)
                 self.knn_rec(query, current_best, k, tree.right, level + 1)
 
@@ -225,11 +202,7 @@ class KD_Tree:
                 self.computation(6)
                 if (query_val - current_best[0][0] < current_val or k > len(current_best)):
                     self.stack.append(call + 1)
-                    self.access(WRITE, STACK, call + 1, 12)
-                    self.access(WRITE, STACK, call + 1, 16)
-                    self.access(WRITE, STACK, call + 1, 20)
-                    self.access(WRITE, STACK, call + 1, 28)
-                    self.access(WRITE, STACK, call + 1, 36)
+                    self.access(WRITE, STACK, call + 1, 0)
                     self.backtrack()
                     self.knn_rec(query, current_best, k, tree.left, level + 1)
         #Return
