@@ -33,6 +33,6 @@ Second, a simple simulation of an accelerator utilzing scratchpad memory, which 
 - Number of Scratchpad Banks
 - Examples
   > PIPELINED 4 SPLIT 512000 4 512000 4 512000 4  
-  > NON_PIPELINED 1 JOINT 512000 8
+  > NON-PIPELINED 1 JOINT 512000 8
   
   
