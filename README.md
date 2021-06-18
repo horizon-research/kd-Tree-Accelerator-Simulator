@@ -1,4 +1,4 @@
-# kd-Tree-Scratchpad-Sim
+# k-d Tree Scratchpad Simulator
 ---
 This repository contains the source code for a simple simulation of a point cloud accelerator. It consists of two basic parts:
 
@@ -24,8 +24,15 @@ Second, a simple simulation of an accelerator utilzing scratchpad memory, which 
 - k-nearest-nighbours format: KNN \<X\> \<Y\> \<Z\> \<k\>
   
  ### Configuration input format:
-- Confgiurations can be entered line by line, and will be processed in that order
-- Joint scratchpad format: \<Num PEs> JOINT \<SP size> \<SP banks>
-- Split scratchpad format: \<Num PEs> SPLIT \<Point SP size> \<Point SP banks> \<Node SP size> \<Node SP banks> \<Stack SP size> \<Stack SP banks>
+- Configurations can be entered line by line, and will be processed in that order
+- There are a number of parameters for the acclerator which can be configured
+- Pipelined vs Non-Pipelined
+- Number of PEs
+- Joint vs Split Scratchpad (If split, scratchpad parameters will be entered once for each scratchpad)
+- Scratchpad Size (bytes)
+- Number of Scratchpad Banks
+- Examples
+  > PIPELINED 4 SPLIT 512000 4 512000 4 512000 4  
+  > NON-PIPELINED 1 JOINT 512000 8
   
   
