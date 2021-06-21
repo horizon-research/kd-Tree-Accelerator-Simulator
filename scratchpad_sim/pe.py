@@ -1,20 +1,20 @@
 #Processing Engine class, contains Pe's current status, as well as thw query it's currently assigned to
 class PE:
-    def __init__(self):
+    def __init__(self, pipeline_size, backtrack_pipeline_size):
         self.stalled = False
         self.query = None
         self.busy = False
         self.lines_processed = 0
-        self.pipeline_size = 36
+        self.pipeline_size = pipeline_size
         self.pipeline = [None for i in range(self.pipeline_size)]
-        self.backtrack_pipeline_size = 8
+        self.backtrack_pipeline_size = backtrack_pipeline_size
         self.backtrack_pipeline = [None for i in range(self.backtrack_pipeline_size)]
     #Manages all queries currently in pipeline, processing their instrucitons for this cycle, and moving them through the pipeline if a stall hasn't occured
-    def manage_pipeline(self, sim, pipeline):
-        size = len(pipeline)
+    def manage_pipeline(self, sim):
+        
         #Iterates through queries in pipeline, starting with query closest to finish
-        for stage in range(size - 1, -1, -1):
-            query_at_stage = pipeline[stage]
+        for stage in range(self.pipeline_size - 1, -1, -1):
+            query_at_stage = self.pipeline[stage]
             if query_at_stage:
                 #Instruction is processed
                 pipeline_switch = self.process_line(sim, query_at_stage)
@@ -23,16 +23,13 @@ class PE:
                     #If query has gone through entire pipeline it can be added back to queue
                     if query_at_stage.finished():
                         sim.active_queries.remove(query_at_stage)
-                        pipeline[stage] = None
-                    elif pipeline_switch or stage == size - 1:
-                        pipeline[stage] = None
-                        if query_at_stage.backtrack:
-                            sim.backtrack_queue.append(query_at_stage)
-                        else:
-                            sim.query_queue.append(query_at_stage)
-                    elif pipeline[stage + 1] is None:
-                        pipeline[stage] = None
-                        pipeline[stage + 1] = query_at_stage
+                        self.pipeline[stage] = None
+                    elif pipeline_switch or (stage == self.pipeline_size - 1) or (query_at_stage.backtrack and stage == self.backtrack_pipeline_size - 1):
+                        self.pipeline[stage] = None
+                        sim.query_to_queue(self, query_at_stage)
+                    elif self.pipeline[stage + 1] is None:
+                        self.pipeline[stage] = None
+                        self.pipeline[stage + 1] = query_at_stage
 
                         
                 
@@ -45,14 +42,7 @@ class PE:
                 if stage is not None:
                     return False
             return True
-    def backtrack_pipeline_open(self, pipelined):
-        if pipelined:
-            return self.backtrack_pipeline[0] is None
-        else:
-            for stage in self.backtrack_pipeline:
-                if stage is not None:
-                    return False
-            return True
+    
     #Attempts to process next instruction
     def process_line(self, sim, query):
         #If the PE isn't currently processing a query, nothing is done

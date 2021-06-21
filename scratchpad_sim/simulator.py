@@ -9,7 +9,7 @@ import sys
     
 #Represents high level simulator, contains PEs, as well as statistics on the current simulation
 class Simulator:
-    def __init__(self, kd_tree_in, queries_in, scratchpads, pipelined):
+    def __init__(self, kd_tree_in, queries_in, scratchpads, num_PEs, pipelined, merged_queues):
         self.split = False
         self.pipelined = pipelined
         self.scratchpads = scratchpads
@@ -23,11 +23,20 @@ class Simulator:
         #Current query to be processed next
         self.query_index = 0
 
-        self.num_PEs = 0
+        self.num_PEs = num_PEs
         self.PEs = []
-        self.query_queue = []
-        self.backtrack_queue = []
+        self.pipeline_size = 36
+        self.backtrack_pipeline_size = 8
+
+        self.merged_queues = merged_queues
+        self.query_queues = []
+        if merged_queues:
+            self.query_queues.append([])
+        else:
+            for i in range(self.num_PEs):
+                self.query_queues.append([])
         self.active_queries = []
+        self.initialize_PEs(self.num_PEs)
         #Unique number for each access processed
         self.access_num = 0
         self.kd_tree.split = self.split
@@ -42,8 +51,8 @@ class Simulator:
         self.PEs.clear()
         self.num_PEs = num_PEs
         for i in range(num_PEs):
-            pe = PE()
-            self.assign_query(pe, False)
+            pe = PE(self.pipeline_size, self.backtrack_pipeline_size)
+            self.assign_query(i, pe)
             self.PEs.append(pe)
 
     #Prints resulting statistics
@@ -90,18 +99,16 @@ class Simulator:
     def run_sim(self):
         #As long as at least one PE is processing instructions, the simulation continues
         while len(self.active_queries) > 0:
-            for pe in self.PEs: 
+            for i in range(self.num_PEs): 
+                pe = self.PEs[i]
                 #PE attempts to process curent trace line
                 #time.sleep(0.1)
                 
-                pe.manage_pipeline(self, pe.pipeline)
-                pe.manage_pipeline(self, pe.backtrack_pipeline)
+                pe.manage_pipeline(self)
                 
                 #If the PE isn't busy, and there are remaining trace files to be processed, a new one is assigned to the PE
                 if pe.pipeline_open(self.pipelined):
-                    self.assign_query(pe, False)
-                if pe.backtrack_pipeline_open(self.pipelined):
-                    self.assign_query(pe, True)
+                    self.assign_query(i, pe)
             #Accesses processed during this cycle are returned
             for scratchpad in self.scratchpads:
                 scratchpad.clear_banks()
@@ -110,33 +117,41 @@ class Simulator:
 
     
     #Given PE is assigned a new query trace file
-    def assign_query(self, pe, backtrack):
-        if not backtrack:
-            if len(self.query_queue) > 0:
-                q = self.query_queue.pop()
-                pe.pipeline[0] = q
-            elif self.query_index < self.num_queries:
-                line = self.queries[self.query_index]
-                q = Query()
-                self.kd_tree.query_trace = q
-                self.active_queries.append(q)
-                pe.pipeline[0] = q
-                self.query_index += 1
-
-                tokens = line.split()
-                if tokens[0] == "KNN":
-                    p = Point(tokens[1:4])
-                    k = int(tokens[4])
-                    self.kd_tree.knn(p, k)
-                    
-                else:
-                    print("Unknown query")
-                    exit()
-                q.next_instruction()
+    def assign_query(self, index, pe):
+        query_queue = None
+        if not self.merged_queues:
+            query_queue = self.query_queues[index]
         else:
-            if len(self.backtrack_queue) > 0:
-                q = self.backtrack_queue.pop()
-                pe.backtrack_pipeline[0] = q
+            query_queue = self.query_queues[0]
+        
+        if len(query_queue) > 0:
+            q = query_queue.pop()
+            pe.pipeline[0] = q
+        elif self.query_index < self.num_queries:
+            line = self.queries[self.query_index]
+            q = Query()
+            self.kd_tree.query_trace = q
+            self.active_queries.append(q)
+            pe.pipeline[0] = q
+            self.query_index += 1
+
+            tokens = line.split()
+            if tokens[0] == "KNN":
+                p = Point(tokens[1:4])
+                k = int(tokens[4])
+                self.kd_tree.knn(p, k)
+                
+            else:
+                print("Unknown query")
+                exit()
+            q.next_instruction()
+
+    def query_to_queue(self, pe, query):
+        index = self.PEs.index(pe)
+        if self.merged_queues:
+            self.query_queues[0].append(query)
+        else:
+            self.query_queues[index].append(query)
            
 #Takes input and runs on according simulator
 def main():
@@ -151,18 +166,21 @@ def main():
             pipelined = True
         elif tokens[0] == "NON-PIPELINED":
             pipelined = False
-        num_PEs = int(tokens[1])
-        if tokens[2] == "JOINT":
-            size = int(tokens[3])
-            num_banks = int(tokens[4])
+        if tokens[1] == "MERGED":
+            merged = True
+        elif tokens[1] == "NON-MERGED":
+            merged = False
+        num_PEs = int(tokens[2])
+        if tokens[3] == "JOINT":
+            size = int(tokens[4])
+            num_banks = int(tokens[5])
             scratchpads.append(Scratchpad(size, num_banks))
-        elif tokens[2] == "SPLIT":
+        elif tokens[3] == "SPLIT":
             for i in range(3):
-                size = int(tokens[3 + (i * 2)])
-                num_banks = int(tokens[4 + (i * 2)])
+                size = int(tokens[4 + (i * 2)])
+                num_banks = int(tokens[5 + (i * 2)])
                 scratchpads.append(Scratchpad(size, num_banks))
-        s = Simulator(kd_tree, queries, scratchpads, pipelined)
-        s.initialize_PEs(num_PEs)
+        s = Simulator(kd_tree, queries, scratchpads, num_PEs, pipelined, merged)
         s.kd_tree.calculate_address_space(s)
         s.run_sim()
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
