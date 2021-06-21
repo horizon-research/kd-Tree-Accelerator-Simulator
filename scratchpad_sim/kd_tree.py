@@ -1,7 +1,7 @@
 import heapq
 from query import Query
 from point import Point
-
+import time
 #Constants which make trace writes more readable
 data_sizes = [16, 24, 40]
 READ = 0
@@ -43,11 +43,11 @@ class KD_Tree:
             p = Point([float(tokens[0]), float(tokens[1]), float(tokens[2])])
             points.append(p)
         self.memory_ptrs = [0, 0, 0, 0]
-
+        print(len(points))
         #Well balanced tree created from points
-        self.build_tree(points, 0, len(points) - 1, 0)
+        self.root = self.build_tree(points, 0, len(points) - 1, 0)
         self.tree_depth = self.depth(self.root, 0)
-        
+        print(self.tree_depth)
     def calculate_address_space(self, sim):
         #Pointers in memory to start of scratchpad sections are calculated
         self.memory_ptrs[NODE] = data_sizes[POINT] * (self.num_nodes + 1)
@@ -64,10 +64,17 @@ class KD_Tree:
             points[lo:hi + 1] = sorted(points[lo:hi + 1], key=lambda p: p.values[dim])
             #Median point is inserted into tree
             p = points[median]
-            self.insert(p)
+            n = Node(p)
+            self.point_indices[p] = self.num_nodes
+            self.node_indices[n] = self.num_nodes
+            self.num_nodes += 1
             #Function called recursivley to all points to the left and right of the median in the sublist, sorting dimension is incremented
-            self.build_tree(points, lo, median - 1, level + 1)
-            self.build_tree(points, median + 1, hi, level + 1)
+            n.left = self.build_tree(points, lo, median - 1, level + 1)
+            n.right = self.build_tree(points, median + 1, hi, level + 1)
+            return n
+        else:
+            return None
+
 
     #Point is inserted into tree based on current order
     def insert(self, p):
@@ -83,7 +90,7 @@ class KD_Tree:
             return node
         else:
             splitting_plane = level % 3
-            if p.dim_value(splitting_plane) < tree.p.dim_value(splitting_plane):
+            if p.dim_value(splitting_plane) <= tree.p.dim_value(splitting_plane):
                 tree.left = self.insert_rec(p, tree.left, level + 1)
             else:
                 tree.right = self.insert_rec(p, tree.right, level + 1)
@@ -104,6 +111,7 @@ class KD_Tree:
         self.print_tree_rec(self.root, 0)
     #Recursively prints tree, insert padding based on the current nodes level in the tree
     def print_tree_rec(self, tree, level):
+        time.sleep(0.02)
         if tree:
             for i in range(level):
                 print("  ", end='')
@@ -131,12 +139,8 @@ class KD_Tree:
         #RS
         self.access(READ, STACK, call, 0) #Query
         
-        
-
         self.computation(1)
         if tree:
-            #RQ
-            
             #RN
             self.access(READ, NODE, self.node_indices[tree], 0)
 
@@ -144,7 +148,6 @@ class KD_Tree:
             self.access(READ, POINT, self.point_indices[tree.p], 0)
 
             #CD
-            self.computation(2)
             splitting_plane = level % self.num_dimensions
 
             #Values found for current point and target point
