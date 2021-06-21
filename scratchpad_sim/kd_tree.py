@@ -160,6 +160,7 @@ class KD_Tree:
 
             #If there are already k points in heap, add current point only if its distance is less than the farthest away point in heap
             self.computation(4)
+            print(current)
             if len(current_best) == k:
                 if distance < current_best[0][0]:
                     heapq.heapreplace(current_best, current)
