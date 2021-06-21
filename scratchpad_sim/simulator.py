@@ -1,3 +1,6 @@
+#Gunnar Hammonds
+#Simulator for configurable point cloud accelerator. 
+
 from os import pipe
 from scratchpad import Scratchpad
 from kd_tree import KD_Tree
@@ -19,6 +22,7 @@ class Simulator:
         self.kd_tree = kd_tree_in
         self.queries = queries_in
         self.num_queries = len(queries_in)
+
         #Query to be processed next
         self.nodes_visited = 0
         self.query_index = 0
@@ -39,15 +43,19 @@ class Simulator:
                 self.query_queues.append([])
 
         self.active_queries = []
+
         #PEs are initally assigned queries
         self.initialize_PEs(self.num_PEs)
+
         #Ensures k-d tree trace will use proper address calculation
         self.kd_tree.split = self.split
+
         #Statistics for simulations
         self.num_conflicts = 0
         self.stalled_cycles = 0
         self.access_nums = [0, 0, 0]
         self.cycles = 0
+
     #Creates desired number of PEs, assigns them inital queries to process
     def initialize_PEs(self, num_PEs):
         self.PEs.clear()
@@ -100,16 +108,15 @@ class Simulator:
 
     #Starts processing of queries, managing PEs to ensure they always have an assigned query if possible
     def run_sim(self):
-        #As long as at least one PE is processing instructions, the simulation continues
+        #As long as at least one query is yet to be fully completed, the simulation continues
         while len(self.active_queries) > 0:
             for i in range(self.num_PEs): 
                 pe = self.PEs[i]
-                #PE attempts to process curent trace line
-                #time.sleep(0.1)
                 
+                #PE manages all queries in its pipeline
                 pe.manage_pipeline(self)
                 
-                #If the PE isn't busy, and there are remaining trace files to be processed, a new one is assigned to the PE
+                #If the PE has an open spot in its pipeline a new query is attempted to be assigned to the PE
                 if pe.pipeline_open(self.pipelined):
                     self.assign_query(i, pe)
             #Accesses processed during this cycle are returned
@@ -122,17 +129,19 @@ class Simulator:
     #Given PE is assigned a new query trace file
     def assign_query(self, index, pe):
         query_queue = None
+        #Uses either universal queue or queue assigned to PE based on simulator configuration
         if not self.merged_queues:
             query_queue = self.query_queues[index]
         else:
             query_queue = self.query_queues[0]
         
+        #If there are queries in the queue, one is taken out and assigned to the PE
         if len(query_queue) > 0:
-            
             q = query_queue.pop()
             if not q.backtrack:
                 self.nodes_visited += 1
             pe.pipeline[0] = q
+        #Otherwise, a new query trace has to be generated from the inputted list of queries
         elif self.query_index < self.num_queries:
             line = self.queries[self.query_index]
             q = Query()
@@ -141,7 +150,7 @@ class Simulator:
             pe.pipeline[0] = q
             self.query_index += 1
             self.nodes_visited += 1
-
+            #Query type is determined and processed
             tokens = line.split()
             if tokens[0] == "KNN":
                 p = Point(tokens[1:4])
@@ -152,7 +161,8 @@ class Simulator:
                 print("Unknown query")
                 exit()
             q.next_instruction()
-
+            
+    #Adds query which has just went through PE pipeline back to the query queue
     def query_to_queue(self, pe, query):
         index = self.PEs.index(pe)
         if self.merged_queues:
@@ -165,19 +175,22 @@ def main():
     kd_tree = KD_Tree("../kdTree_Inputs/" + sys.argv[1])
     queries = open("../Query_Inputs/" + sys.argv[2]).readlines()
     configs = open("../Config_Inputs/" + sys.argv[3]).readlines()
-
+    #Iterates through list of configurations from which simulation will run
     for config in configs:
         scratchpads = []
         tokens = config.split()
+        #Pipelining options
         if tokens[0] == "PIPELINED":
             pipelined = True
         elif tokens[0] == "NON-PIPELINED":
             pipelined = False
+        #Query queue options
         if tokens[1] == "MERGED":
             merged = True
         elif tokens[1] == "NON-MERGED":
             merged = False
         num_PEs = int(tokens[2])
+        #Scratchpad options
         if tokens[3] == "JOINT":
             size = int(tokens[4])
             num_banks = int(tokens[5])
@@ -187,6 +200,7 @@ def main():
                 size = int(tokens[4 + (i * 2)])
                 num_banks = int(tokens[5 + (i * 2)])
                 scratchpads.append(Scratchpad(size, num_banks))
+        #Simulator is created and ran
         s = Simulator(kd_tree, queries, scratchpads, num_PEs, pipelined, merged)
         s.kd_tree.calculate_address_space(s)
         s.run_sim()

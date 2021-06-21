@@ -18,15 +18,17 @@ class PE:
             if query_at_stage:
                 #Instruction is processed
                 pipeline_switch = self.process_line(sim, query_at_stage)
-                #If the query has not stalled, it can be advacned to the next stage of the pipeline
+                #If the query has not stalled, it can be advanced to the next stage of the pipeline
                 if not query_at_stage.stalled:
-                    #If query has gone through entire pipeline it can be added back to queue
+                    #The the query has been completely finished it can be fully removed
                     if query_at_stage.finished():
                         sim.active_queries.remove(query_at_stage)
                         self.pipeline[stage] = None
+                    #If query has completed pipeline sequence or has changed its backtracking status, it's reinserted into the queue
                     elif pipeline_switch or (stage == self.pipeline_size - 1) or (query_at_stage.backtrack and stage == self.backtrack_pipeline_size - 1):
                         self.pipeline[stage] = None
                         sim.query_to_queue(self, query_at_stage)
+                    #Otherwise, if the next stage of the pipeline is empty, i.e the next query being processed hasn't stalled, the query can be moved forward in the queue
                     elif self.pipeline[stage + 1] is None:
                         self.pipeline[stage] = None
                         self.pipeline[stage + 1] = query_at_stage
