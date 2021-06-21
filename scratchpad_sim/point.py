@@ -18,6 +18,10 @@ class Point:
     def dim_value(self, dim):
         return self.values[dim]
 
+    #Resolves edge case in knn search where two points are equal distance from query, the point which is chosen doesn't really matter
+    def __gt__(self, p2):
+        return self
+        
     def __str__(self):
         s = ''
         for val in self.values:
