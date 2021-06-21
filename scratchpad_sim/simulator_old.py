@@ -26,7 +26,7 @@ class PE:
             #Read
             if self.line[0] == "R":
                 access_type = self.line[1]
-                sim.read_nums[access_type] += 1
+                sim.access_nums[access_type] += 1
                 address = self.line[2]
                 
                 #If true is returned there was a bank conflict
@@ -76,7 +76,7 @@ class Simulator:
         #Statistics for simulations
         self.num_conflicts = 0
         self.stalled_cycles = 0
-        self.read_nums = [0, 0, 0]
+        self.access_nums = [0, 0, 0]
         self.write_nums = [0, 0, 0]
         self.cycles = 0
     #Creates desired number of PEs, assigns them inital queries to process
@@ -113,9 +113,9 @@ class Simulator:
         print(f'\nNumber of queries processed: {self.num_queries}\n')
 
         print(f'Total accesses: {self.access_num}')
-        print(f'Point reads: {self.read_nums[0]}')
-        print(f'Node reads: {self.read_nums[1]}')
-        print(f'Stack reads: {self.read_nums[2]}\n')
+        print(f'Point reads: {self.access_nums[0]}')
+        print(f'Node reads: {self.access_nums[1]}')
+        print(f'Stack reads: {self.access_nums[2]}\n')
 
         print(f'Num conflicts: {self.num_conflicts}')
         print(f'Total number of stalled cycles: {self.stalled_cycles}')

@@ -57,7 +57,7 @@ class PE:
         if line[0] == "R" or line[0] == "W":
             access_type = line[1]
             if not query.stalled:
-                sim.read_nums[access_type] += 1
+                sim.access_nums[access_type] += 1
             address = line[2]
             
             #If true is returned there was a bank conflict
@@ -70,11 +70,6 @@ class PE:
                 query.stalled = True
             else:
                 query.stalled = False
-            
-        if query.backtrack:
-            sim.bcycles += 1
-        else:
-            sim.ncycles += 1
 
         pipeline_switch = False
         #If there are no more instructions to be processed, the query is removed from the list of active queries, and the PE is ready to be assigned a new query

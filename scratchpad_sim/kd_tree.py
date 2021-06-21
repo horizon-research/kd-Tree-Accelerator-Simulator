@@ -74,27 +74,7 @@ class KD_Tree:
             return n
         else:
             return None
-
-
-    #Point is inserted into tree based on current order
-    def insert(self, p):
-        self.root = self.insert_rec(p, self.root, 0)
-    #Recursivley moves down tree, comparing the current node's point and the input point on the nodes splitting plane, moving left or right accordingly,
-    #The point is inserted when a null node is found
-    def insert_rec(self, p, tree, level):
-        if tree is None:
-            node = Node(p)
-            self.point_indices[p] = self.num_nodes
-            self.node_indices[node] = self.num_nodes
-            self.num_nodes += 1
-            return node
-        else:
-            splitting_plane = level % 3
-            if p.dim_value(splitting_plane) <= tree.p.dim_value(splitting_plane):
-                tree.left = self.insert_rec(p, tree.left, level + 1)
-            else:
-                tree.right = self.insert_rec(p, tree.right, level + 1)
-            return tree
+    
     def depth(self, tree, level):
         if tree:
             left_depth = self.depth(tree.left, level + 1)
@@ -102,9 +82,6 @@ class KD_Tree:
             return left_depth if left_depth > right_depth else right_depth
         else:
             return level
-
-
-    
 
     #Prints tree
     def print_tree(self):

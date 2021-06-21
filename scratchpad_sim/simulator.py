@@ -10,24 +10,26 @@ import sys
 #Represents high level simulator, contains PEs, as well as statistics on the current simulation
 class Simulator:
     def __init__(self, kd_tree_in, queries_in, scratchpads, num_PEs, pipelined, merged_queues):
+        #Scratchpad setup
         self.split = False
-        self.pipelined = pipelined
         self.scratchpads = scratchpads
         if len(scratchpads) > 1:
             self.split = True
-        self.ncycles = 0
-        self.bcycles = 0
+
         self.kd_tree = kd_tree_in
         self.queries = queries_in
         self.num_queries = len(queries_in)
-        #Current query to be processed next
+        #Query to be processed next
+        self.nodes_visited = 0
         self.query_index = 0
 
+        #PE setup
         self.num_PEs = num_PEs
         self.PEs = []
-        self.pipeline_size = 36
+        self.pipelined = pipelined
+        self.pipeline_size = 34
         self.backtrack_pipeline_size = 8
-
+        #Creates appropriate number of query queues
         self.merged_queues = merged_queues
         self.query_queues = []
         if merged_queues:
@@ -35,16 +37,16 @@ class Simulator:
         else:
             for i in range(self.num_PEs):
                 self.query_queues.append([])
+
         self.active_queries = []
+        #PEs are initally assigned queries
         self.initialize_PEs(self.num_PEs)
-        #Unique number for each access processed
-        self.access_num = 0
+        #Ensures k-d tree trace will use proper address calculation
         self.kd_tree.split = self.split
         #Statistics for simulations
         self.num_conflicts = 0
         self.stalled_cycles = 0
-        self.read_nums = [0, 0, 0]
-        self.write_nums = [0, 0, 0]
+        self.access_nums = [0, 0, 0]
         self.cycles = 0
     #Creates desired number of PEs, assigns them inital queries to process
     def initialize_PEs(self, num_PEs):
@@ -60,6 +62,7 @@ class Simulator:
         print("\nSummary:")
         print(f'Num PEs: {self.num_PEs}')
         print(f'Pipelined: {self.pipelined}')
+        print(f'Merged Query Queue: {self.merged_queues}')
         config = 'Split' if self.split else 'Joint'
         print(f'Scratchpad Configuration: {config}\n')
         if self.split:
@@ -77,10 +80,10 @@ class Simulator:
 
 
         print(f'\nNumber of queries processed: {self.num_queries}\n')
-
-        print(f'Point accesses: {self.read_nums[0]}')
-        print(f'Node accesses: {self.read_nums[1]}')
-        print(f'Stack accesses: {self.read_nums[2]}\n')
+        print(f'Number of nodes visited: {self.nodes_visited}')
+        print(f'Point accesses: {self.access_nums[0]}')
+        print(f'Node accesses: {self.access_nums[1]}')
+        print(f'Stack accesses: {self.access_nums[2]}\n')
 
         print(f'Num conflicts: {self.num_conflicts}')
         print(f'Total number of stalled cycles: {self.stalled_cycles}')
@@ -91,9 +94,9 @@ class Simulator:
             if pe.lines_processed > max:
                 max = pe.lines_processed
         print(f'Total lines processed: {sum}')
-        print(f'Ideal num cycles: {max}')
         print(f'Actual num cycles: {self.cycles}')
-        print(f'Cycles lost stalling: {self.cycles - max}\n')
+        print(f'Average cycles per node traversed: {self.cycles / self.nodes_visited}')
+        print(f'Ideal number of cycles per node traversed: {(self.pipeline_size + self.backtrack_pipeline_size) / (self.num_PEs * self.pipeline_size)}')
 
     #Starts processing of queries, managing PEs to ensure they always have an assigned query if possible
     def run_sim(self):
@@ -125,7 +128,10 @@ class Simulator:
             query_queue = self.query_queues[0]
         
         if len(query_queue) > 0:
+            
             q = query_queue.pop()
+            if not q.backtrack:
+                self.nodes_visited += 1
             pe.pipeline[0] = q
         elif self.query_index < self.num_queries:
             line = self.queries[self.query_index]
@@ -134,6 +140,7 @@ class Simulator:
             self.active_queries.append(q)
             pe.pipeline[0] = q
             self.query_index += 1
+            self.nodes_visited += 1
 
             tokens = line.split()
             if tokens[0] == "KNN":
