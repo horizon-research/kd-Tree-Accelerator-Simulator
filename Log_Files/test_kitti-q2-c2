@@ -1,0 +1,33 @@
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Actual Results
+
+Summary:
+Num PEs: 4
+Pipelined: True
+Merged Query Queue: True
+Scratchpad Configuration: Joint
+
+Scratchpad size: 5000000
+Scratchpad banks: 8
+
+Number of queries processed: 2304
+
+Number of nodes visited: 31773
+Point accesses: 39168
+Node accesses: 39168
+Stack accesses: 122112
+
+Num conflicts: 312706
+Total stages stalled: 3060655
+Percentage of time stalled : 0.6069028956953222
+Total lines processed: 1456128
+Actual num cycles: 39399
+Average cycles per node traversed: 1.240015107166462
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Ideal Results
+Num conflicts: 148327
+Total stages stalled: 0
+Percentage of time stalled : 0.0
+Total lines processed: 1456128
+Actual num cycles: 17863
+Average cycles per node traversed: 0.4845648871527778

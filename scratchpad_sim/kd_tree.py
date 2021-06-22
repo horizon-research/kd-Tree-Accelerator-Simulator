@@ -203,22 +203,6 @@ class KD_Tree:
     def backtrack(self):
         self.query_trace.add("BT")
 
-    #Writes all instructions for distance calculation
-    def write_distance(self, p1, p2):
-        self.access(READ, POINT, self.point_indices[p1], X)
-        self.access(READ, POINT, self.num_nodes, X)
-        self.computation(6)
-
-        self.access(READ, POINT, self.point_indices[p1], Y)
-        self.access(READ, POINT, self.num_nodes, Y)
-        self.computation(6)
-
-        self.access(READ, POINT, self.point_indices[p1], Z)
-        self.access(READ, POINT, self.num_nodes, Z)
-        self.computation(6)
-    def write_stage(self):
-        self.query_trace.add("~~~~~~")
-    
 #Internal node class
 class Node:
         def __init__(self, p):
