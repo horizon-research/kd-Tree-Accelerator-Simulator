@@ -17,13 +17,8 @@ class PE:
             query_at_stage = self.pipeline[stage]
             if query_at_stage:
                 #Instruction is processed
-<<<<<<< HEAD
                 pipeline_switch = self.process_line(sim, query_at_stage, ideal)
                 #If the query has not stalled, it can be advacned to the next stage of the pipeline
-=======
-                pipeline_switch = self.process_line(sim, query_at_stage)
-                #If the query has not stalled, it can be advanced to the next stage of the pipeline
->>>>>>> 06f6d22201e8d9b9feed6a3c1f55b65ef2fb1cde
                 if not query_at_stage.stalled:
                     #The the query has been completely finished it can be fully removed
                     if query_at_stage.finished():

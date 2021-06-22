@@ -111,23 +111,13 @@ class Simulator:
         #print(f'Ideal number of cycles per node traversed: {(self.pipeline_size + self.backtrack_pipeline_size) / (self.num_PEs * (self.pipeline_size + self.backtrack_pipeline_size) / 2)}')
 
     #Starts processing of queries, managing PEs to ensure they always have an assigned query if possible
-<<<<<<< HEAD
     def run_sim(self, ideal):
         #As long as at least one PE is processing instructions, the simulation continues
-=======
-    def run_sim(self):
-        #As long as at least one query is yet to be fully completed, the simulation continues
->>>>>>> 06f6d22201e8d9b9feed6a3c1f55b65ef2fb1cde
         while len(self.active_queries) > 0:
             for i in range(self.num_PEs): 
                 pe = self.PEs[i]
                 
-<<<<<<< HEAD
                 pe.manage_pipeline(self, ideal)
-=======
-                #PE manages all queries in its pipeline
-                pe.manage_pipeline(self)
->>>>>>> 06f6d22201e8d9b9feed6a3c1f55b65ef2fb1cde
                 
                 #If the PE has an open spot in its pipeline a new query is attempted to be assigned to the PE
                 if pe.pipeline_open(self.pipelined):
@@ -188,12 +178,8 @@ def main():
     kd_tree = KD_Tree("../kdTree_Inputs/" + sys.argv[1])
     queries = open("../Query_Inputs/" + sys.argv[2]).readlines()
     configs = open("../Config_Inputs/" + sys.argv[3]).readlines()
-<<<<<<< HEAD
     l = Log("../Log_Files/" + sys.argv[1] + "-" + sys.argv[2] + "-" + sys.argv[3])
     sys.stdout = l
-=======
-    #Iterates through list of configurations from which simulation will run
->>>>>>> 06f6d22201e8d9b9feed6a3c1f55b65ef2fb1cde
     for config in configs:
         scratchpads = []
         tokens = config.split()
