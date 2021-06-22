@@ -10,14 +10,14 @@ class PE:
         self.backtrack_pipeline_size = backtrack_pipeline_size
         self.backtrack_pipeline = [None for i in range(self.backtrack_pipeline_size)]
     #Manages all queries currently in pipeline, processing their instrucitons for this cycle, and moving them through the pipeline if a stall hasn't occured
-    def manage_pipeline(self, sim):
+    def manage_pipeline(self, sim, ideal):
         
         #Iterates through queries in pipeline, starting with query closest to finish
         for stage in range(self.pipeline_size - 1, -1, -1):
             query_at_stage = self.pipeline[stage]
             if query_at_stage:
                 #Instruction is processed
-                pipeline_switch = self.process_line(sim, query_at_stage)
+                pipeline_switch = self.process_line(sim, query_at_stage, ideal)
                 #If the query has not stalled, it can be advacned to the next stage of the pipeline
                 if not query_at_stage.stalled:
                     #If query has gone through entire pipeline it can be added back to queue
@@ -30,6 +30,8 @@ class PE:
                     elif self.pipeline[stage + 1] is None:
                         self.pipeline[stage] = None
                         self.pipeline[stage + 1] = query_at_stage
+                else:
+                    sim.stages_stalled += stage + 1
 
                         
                 
@@ -44,7 +46,7 @@ class PE:
             return True
     
     #Attempts to process next instruction
-    def process_line(self, sim, query):
+    def process_line(self, sim, query, ideal):
         #If the PE isn't currently processing a query, nothing is done
         
         #Loads next instruction if not currently stalled
@@ -67,7 +69,8 @@ class PE:
                 scratchpad = sim.scratchpads[0]
             if scratchpad.read(address):
                 sim.num_conflicts += 1
-                query.stalled = True
+                if not ideal:
+                    query.stalled = True
             else:
                 query.stalled = False
 
