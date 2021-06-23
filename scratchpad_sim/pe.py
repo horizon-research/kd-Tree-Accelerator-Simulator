@@ -10,14 +10,14 @@ class PE:
         self.backtrack_pipeline_size = backtrack_pipeline_size
         self.backtrack_pipeline = [None for i in range(self.backtrack_pipeline_size)]
     #Manages all queries currently in pipeline, processing their instrucitons for this cycle, and moving them through the pipeline if a stall hasn't occured
-    def manage_pipeline(self, sim, ideal):
+    def manage_pipeline(self, sim):
         
         #Iterates through queries in pipeline, starting with query closest to finish
         for stage in range(self.pipeline_size - 1, -1, -1):
             query_at_stage = self.pipeline[stage]
             if query_at_stage:
                 #Instruction is processed
-                pipeline_switch = self.process_line(sim, query_at_stage, ideal)
+                pipeline_switch = self.process_line(sim, query_at_stage, sim.ideal)
                 #If the query has not stalled, it can be advacned to the next stage of the pipeline
                 if not query_at_stage.stalled:
                     #The the query has been completely finished it can be fully removed

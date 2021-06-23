@@ -7,12 +7,13 @@ from kd_tree import KD_Tree
 from kd_tree import Point
 from query import Query
 from pe import PE
+import csv
 import sys
 import logging
     
 #Represents high level simulator, contains PEs, as well as statistics on the current simulation
 class Simulator:
-    def __init__(self, kd_tree_in, queries_in, scratchpads, num_PEs, pipelined, merged_queues):
+    def __init__(self, kd_tree_in, queries_in, scratchpads, num_PEs, pipelined, merged_queues, ideal):
         #Scratchpad setup
         self.split = False
         self.scratchpads = scratchpads
@@ -34,6 +35,7 @@ class Simulator:
         self.pipelined = pipelined
         self.pipeline_size = 32
         self.backtrack_pipeline_size = 8
+        self.ideal = ideal
         #Creates appropriate number of query queues
         self.merged_queues = merged_queues
         self.query_queues = []
@@ -67,37 +69,66 @@ class Simulator:
             self.PEs.append(pe)
 
     #Prints resulting statistics
-    def print_results(self, ideal):
-        if not ideal:
-            print("\nSummary:")
-            print(f'Num PEs: {self.num_PEs}')
-            print(f'Pipelined: {self.pipelined}')
-            print(f'Merged Query Queue: {self.merged_queues}')
-            config = 'Split' if self.split else 'Joint'
-            print(f'Scratchpad Configuration: {config}\n')
-            if self.split:
-                print(f'Point scratchpad size: {self.scratchpads[0].size}')
-                print(f'Point scratchpad banks: {self.scratchpads[0].num_banks}')
+    def print_results(self):
+        results = []
+        print("\nSummary:")
+        print(f'Num PEs: {self.num_PEs}')
+        results.append(self.num_PEs)
 
-                print(f'Node scratchpad size: {self.scratchpads[1].size}')
-                print(f'Node scratchpad banks: {self.scratchpads[1].num_banks}')
+        print(f'Pipelined: {self.pipelined}')
+        results.append(self.pipelined)
 
-                print(f'Stack scratchpad size: {self.scratchpads[1].size}')
-                print(f'Stack scratchpad banks: {self.scratchpads[1].num_banks}')
-            else:
-                print(f'Scratchpad size: {self.scratchpads[0].size}')
-                print(f'Scratchpad banks: {self.scratchpads[0].num_banks}')
+        print(f'Merged Query Queue: {self.merged_queues}')
+        results.append(self.merged_queues)
+
+        config = 'Split' if self.split else 'Joint'
+        print(f'Scratchpad Configuration: {config}\n')
+        results.append(self.split)
+        
+        if self.split:
+            print(f'Point scratchpad size: {self.scratchpads[0].size}')
+            print(f'Point scratchpad banks: {self.scratchpads[0].num_banks}')
+
+            print(f'Node scratchpad size: {self.scratchpads[1].size}')
+            print(f'Node scratchpad banks: {self.scratchpads[1].num_banks}')
+
+            print(f'Stack scratchpad size: {self.scratchpads[1].size}')
+            print(f'Stack scratchpad banks: {self.scratchpads[1].num_banks}')
+            results += [self.scratchpads[0].size, self.scratchpads[0].num_banks, self.scratchpads[1].size, self.scratchpads[1].num_banks,self.scratchpads[2].size, self.scratchpads[2].num_banks]
+        else:
+            print(f'Scratchpad size: {self.scratchpads[0].size}')
+            print(f'Scratchpad banks: {self.scratchpads[0].num_banks}')
+            results += [self.scratchpads[0].size, self.scratchpads[0].num_banks, "NA", "NA", "NA", "NA"]
 
 
-            print(f'\nNumber of queries processed: {self.num_queries}\n')
-            print(f'Number of nodes visited: {self.nodes_visited}')
-            print(f'Point accesses: {self.access_nums[0]}')
-            print(f'Node accesses: {self.access_nums[1]}')
-            print(f'Stack accesses: {self.access_nums[2]}\n')
+        print(f'Ideal: {self.ideal}')
+        results.append(self.ideal)
+
+        print(f'\nNumber of queries processed: {self.num_queries}\n')
+        results.append(self.num_queries)
+
+        print(f'Number of nodes visited: {self.nodes_visited}')
+        results.append(self.nodes_visited)
+
+        print(f'Point accesses: {self.access_nums[0]}')
+        results.append(self.access_nums[0])
+
+        print(f'Node accesses: {self.access_nums[1]}')
+        results.append(self.access_nums[1])
+
+        print(f'Stack accesses: {self.access_nums[2]}\n')
+        results.append(self.access_nums[2])
 
         print(f'Num conflicts: {self.num_conflicts}')
+        results.append(self.num_conflicts)
+
         print(f'Total stages stalled: {self.stages_stalled}')
-        print(f'Percentage of time stalled : {self.stages_stalled / (self.pipeline_size * self.num_PEs * self.cycles)}')
+        results.append(self.stages_stalled)
+
+        percent = self.stages_stalled / (self.pipeline_size * self.num_PEs * self.cycles)
+        print(f'Percentage of time stalled : {percent}')
+        results.append(percent)
+
 
         sum = 0
         max = 0
@@ -106,18 +137,26 @@ class Simulator:
             if pe.lines_processed > max:
                 max = pe.lines_processed
         print(f'Total lines processed: {sum}')
+        results.append(sum)
+
         print(f'Actual num cycles: {self.cycles}')
-        print(f'Average cycles per node traversed: {self.cycles / self.nodes_visited}')
+        results.append(self.cycles)
+
+        avg = self.cycles / self.nodes_visited
+        print(f'Average cycles per node traversed: {avg}')
+        results.append(avg)
+        
+        return results
         #print(f'Ideal number of cycles per node traversed: {(self.pipeline_size + self.backtrack_pipeline_size) / (self.num_PEs * (self.pipeline_size + self.backtrack_pipeline_size) / 2)}')
 
     #Starts processing of queries, managing PEs to ensure they always have an assigned query if possible
-    def run_sim(self, ideal):
+    def run_sim(self):
         #As long as at least one PE is processing instructions, the simulation continues
         while len(self.active_queries) > 0:
             for i in range(self.num_PEs): 
                 pe = self.PEs[i]
                 
-                pe.manage_pipeline(self, ideal)
+                pe.manage_pipeline(self)
                 
                 #If the PE has an open spot in its pipeline a new query is attempted to be assigned to the PE
                 if pe.pipeline_open(self.pipelined):
@@ -178,55 +217,57 @@ def main():
     kd_tree = KD_Tree("../kdTree_Inputs/" + sys.argv[1])
     queries = open("../Query_Inputs/" + sys.argv[2]).readlines()
     configs = open("../Config_Inputs/" + sys.argv[3]).readlines()
-    l = Log("../Log_Files/" + sys.argv[1] + "-" + sys.argv[2] + "-" + sys.argv[3])
-    sys.stdout = l
+    log = open("../Log_Files/" + sys.argv[4] + ".csv", "w")
+
+    writer = csv.writer(log)
+    writer.writerow(["Num PEs", "Pipeline", "Merged QQ", "Joint Scratchpad", "Scratchpad 0 Size", "Scratchpad 0 Banks",  "Scratchpad 1 Size", "Scratchpad 1 Banks", "Scratchpad 2 Size", "Scratchpad 2 Banks","Ideal",
+     "Queries Processed", "Nodes Visited", "Point Accesses", "Node Accesses", "Stack Accesses", 
+     "Conflicts", "Stages Stalled", "Percent Time Stalled", "Lines Processed", "Num Cycles", "Average Cycles per Node Traversed"])
     for config in configs:
-        scratchpads = []
-        tokens = config.split()
-        #Pipelining options
-        if tokens[0] == "PIPELINED":
-            pipelined = True
-        elif tokens[0] == "NON-PIPELINED":
-            pipelined = False
-        #Query queue options
-        if tokens[1] == "MERGED":
-            merged = True
-        elif tokens[1] == "NON-MERGED":
-            merged = False
-        num_PEs = int(tokens[2])
-        #Scratchpad options
-        if tokens[3] == "JOINT":
-            size = int(tokens[4])
-            num_banks = int(tokens[5])
+        s = configurate_simulator(config, queries, kd_tree)
+        s.run_sim()
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        results = s.print_results()
+        writer.writerow(results)
+
+
+
+
+
+        
+def configurate_simulator(config, queries, kd_tree):
+    scratchpads = []
+    tokens = config.split()
+    #Pipelining options
+    if tokens[0] == "PIPELINED":
+        pipelined = True
+    elif tokens[0] == "NON-PIPELINED":
+        pipelined = False
+    #Query queue options
+    if tokens[1] == "MERGED":
+        merged = True
+    elif tokens[1] == "NON-MERGED":
+        merged = False
+    if tokens[2] == "IDEAL":
+        ideal = True
+    elif tokens[2] == "ACTUAL":
+        ideal = False
+    num_PEs = int(tokens[3])
+    #Scratchpad options
+    if tokens[4] == "JOINT":
+        size = int(tokens[5])
+        num_banks = int(tokens[6])
+        scratchpads.append(Scratchpad(size, num_banks))
+    elif tokens[4] == "SPLIT":
+        for i in range(3):
+            size = int(tokens[5 + (i * 2)])
+            num_banks = int(tokens[6 + (i * 2)])
             scratchpads.append(Scratchpad(size, num_banks))
-        elif tokens[3] == "SPLIT":
-            for i in range(3):
-                size = int(tokens[4 + (i * 2)])
-                num_banks = int(tokens[5 + (i * 2)])
-                scratchpads.append(Scratchpad(size, num_banks))
-        #Simulator is created and ran
-        s = Simulator(kd_tree, queries, scratchpads, num_PEs, pipelined, merged)
-        s.kd_tree.calculate_address_space(s)
-        s.run_sim(False)
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        print('Actual Results')
-        s.print_results(False)
+    #Simulator is created and ran
+    
+    s = Simulator(kd_tree, queries, scratchpads, num_PEs, pipelined, merged, ideal)
+    s.kd_tree.calculate_address_space(s)
+    return s
 
-        s = Simulator(kd_tree, queries, scratchpads, num_PEs, pipelined, merged)
-        s.run_sim(True)
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        print('Ideal Results')
-        s.print_results(True)
-
-class Log():
-    def __init__(self, file_name):
-        self.terminal = sys.stdout
-        self.log = open(file_name, "w+")
-
-    def write(self, message):
-        self.terminal.write(message)
-        self.log.write(message) 
-    def flush(self):
-        pass
    
 main()
