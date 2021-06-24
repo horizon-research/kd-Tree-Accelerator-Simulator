@@ -176,7 +176,7 @@ class Simulator:
             query_queue = self.query_queues[0]
         
         #If there are queries in the queue, one is taken out and assigned to the PE
-        if len(query_queue) > 0:
+        if query_queue:
             q = query_queue.pop()
             if not q.backtrack:
                 self.nodes_visited += 1
@@ -214,20 +214,29 @@ class Simulator:
 def main():
     
     configs = open("../Config_Inputs/" + sys.argv[1]).readlines()
-    log = open("../Log_Files/" + sys.argv[1] + "_log.csv", "w")
+    log = open("../Log_Files/" + sys.argv[2] + ".csv", "w")
+    if len(sys.argv) == 5:
+        start = int(sys.argv[3])
+        end = int(sys.argv[4])
+    else:
+        start = 0
+        end = len(configs)
+
 
     writer = csv.writer(log)
-    writer.writerow(["Num PEs", "Pipeline", "Merged QQ", "Joint Scratchpad", "Scratchpad 0 Size", "Scratchpad 0 Banks",  "Scratchpad 1 Size", "Scratchpad 1 Banks", "Scratchpad 2 Size", "Scratchpad 2 Banks","Ideal",
-     "Queries Processed", "Nodes Visited", "Point Accesses", "Node Accesses", "Stack Accesses", 
-     "Conflicts", "Stages Stalled", "Percent Time Stalled", "Lines Processed", "Num Cycles", "Average Cycles per Node Traversed"])
-    for index, config in enumerate(configs):
+    writer.writerow(["Num_PEs", "Pipeline", "Merged_QQ", "Joint_Scratchpad", "Scratchpad_0_Size", "Scratchpad_0_Banks",  "Scratchpad_1_Size", "Scratchpad_1_Banks", "Scratchpad_2_Size", "Scratchpad 2 Banks","Ideal",
+     "Queries_Processed", "Nodes_Visited", "Point_Accesses", "Node_Accesses", "Stack_Accesses", 
+     "Conflicts", "Stages_Stalled", "Percent_Time_Stalled", "Lines_Processed", "Cycles", "Avg_Cycles_per_Node"])
+    for i in range(start, end):
+        config = configs[i]
         s = configurate_simulator(config)
+        percent = round(((i - start) / (end - start)) * 100)
+        print("\rSimulating " + sys.argv[2] + ": " + str(percent) + "%")
         s.run_sim()
-        percent = index / len(configs) * 100
-        print("\rSimulating " + sys.argv[1] + ": " + str(percent) + "%")
         results = s.print_results()
         writer.writerow(results)
         log.flush()
+    print("Finished " + sys.argv[2])
     log.close()
         
 def configurate_simulator(config):
