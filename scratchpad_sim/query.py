@@ -24,11 +24,11 @@ class Query:
 
     #There are no more instructions to process
     def finished(self):
-        return len(self.instructions) == 0
+        return not self.instructions
         
     #Removes instruction from top of list and returns it
     def next_instruction(self):
-        if not self.finished():
+        if self.instructions:
             if not self.stalled:
                 self.current_instruction = self.instructions.pop(0)
         else:

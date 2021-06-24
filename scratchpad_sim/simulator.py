@@ -71,62 +71,62 @@ class Simulator:
     #Prints resulting statistics
     def print_results(self):
         results = []
-        print("\nSummary:")
-        print(f'Num PEs: {self.num_PEs}')
+        #print("\nSummary:")
+        #print(f'Num PEs: {self.num_PEs}')
         results.append(self.num_PEs)
 
-        print(f'Pipelined: {self.pipelined}')
+        #print(f'Pipelined: {self.pipelined}')
         results.append(self.pipelined)
 
-        print(f'Merged Query Queue: {self.merged_queues}')
+        #print(f'Merged Query Queue: {self.merged_queues}')
         results.append(self.merged_queues)
 
         config = 'Split' if self.split else 'Joint'
-        print(f'Scratchpad Configuration: {config}\n')
+        #print(f'Scratchpad Configuration: {config}\n')
         results.append(self.split)
         
         if self.split:
-            print(f'Point scratchpad size: {self.scratchpads[0].size}')
-            print(f'Point scratchpad banks: {self.scratchpads[0].num_banks}')
+            #print(f'Point scratchpad size: {self.scratchpads[0].size}')
+            #print(f'Point scratchpad banks: {self.scratchpads[0].num_banks}')
 
-            print(f'Node scratchpad size: {self.scratchpads[1].size}')
-            print(f'Node scratchpad banks: {self.scratchpads[1].num_banks}')
+            #print(f'Node scratchpad size: {self.scratchpads[1].size}')
+            #print(f'Node scratchpad banks: {self.scratchpads[1].num_banks}')
 
-            print(f'Stack scratchpad size: {self.scratchpads[1].size}')
-            print(f'Stack scratchpad banks: {self.scratchpads[1].num_banks}')
+            #print(f'Stack scratchpad size: {self.scratchpads[1].size}')
+            #print(f'Stack scratchpad banks: {self.scratchpads[1].num_banks}')
             results += [self.scratchpads[0].size, self.scratchpads[0].num_banks, self.scratchpads[1].size, self.scratchpads[1].num_banks,self.scratchpads[2].size, self.scratchpads[2].num_banks]
         else:
-            print(f'Scratchpad size: {self.scratchpads[0].size}')
-            print(f'Scratchpad banks: {self.scratchpads[0].num_banks}')
+            #print(f'Scratchpad size: {self.scratchpads[0].size}')
+            #print(f'Scratchpad banks: {self.scratchpads[0].num_banks}')
             results += [self.scratchpads[0].size, self.scratchpads[0].num_banks, "NA", "NA", "NA", "NA"]
 
 
-        print(f'Ideal: {self.ideal}')
+        #print(f'Ideal: {self.ideal}')
         results.append(self.ideal)
 
-        print(f'\nNumber of queries processed: {self.num_queries}\n')
+        #print(f'\nNumber of queries processed: {self.num_queries}\n')
         results.append(self.num_queries)
 
-        print(f'Number of nodes visited: {self.nodes_visited}')
+        #print(f'Number of nodes visited: {self.nodes_visited}')
         results.append(self.nodes_visited)
 
-        print(f'Point accesses: {self.access_nums[0]}')
+        #print(f'Point accesses: {self.access_nums[0]}')
         results.append(self.access_nums[0])
 
-        print(f'Node accesses: {self.access_nums[1]}')
+        #print(f'Node accesses: {self.access_nums[1]}')
         results.append(self.access_nums[1])
 
-        print(f'Stack accesses: {self.access_nums[2]}\n')
+        #print(f'Stack accesses: {self.access_nums[2]}\n')
         results.append(self.access_nums[2])
 
-        print(f'Num conflicts: {self.num_conflicts}')
+        #print(f'Num conflicts: {self.num_conflicts}')
         results.append(self.num_conflicts)
 
-        print(f'Total stages stalled: {self.stages_stalled}')
+        #print(f'Total stages stalled: {self.stages_stalled}')
         results.append(self.stages_stalled)
 
         percent = self.stages_stalled / (self.pipeline_size * self.num_PEs * self.cycles)
-        print(f'Percentage of time stalled : {percent}')
+        #print(f'Percentage of time stalled : {percent}')
         results.append(percent)
 
 
@@ -136,14 +136,14 @@ class Simulator:
             sum += pe.lines_processed
             if pe.lines_processed > max:
                 max = pe.lines_processed
-        print(f'Total lines processed: {sum}')
+        #print(f'Total lines processed: {sum}')
         results.append(sum)
 
-        print(f'Actual num cycles: {self.cycles}')
+        #print(f'Actual num cycles: {self.cycles}')
         results.append(self.cycles)
 
         avg = self.cycles / self.nodes_visited
-        print(f'Average cycles per node traversed: {avg}')
+        #print(f'Average cycles per node traversed: {avg}')
         results.append(avg)
         
         return results
@@ -214,54 +214,59 @@ class Simulator:
            
 #Takes input and runs on according simulator
 def main():
-    kd_tree = KD_Tree("../kdTree_Inputs/" + sys.argv[1])
-    queries = open("../Query_Inputs/" + sys.argv[2]).readlines()
-    configs = open("../Config_Inputs/" + sys.argv[3]).readlines()
-    log = open("../Log_Files/" + sys.argv[4] + ".csv", "w")
+    
+    configs = open("../Config_Inputs/" + sys.argv[1]).readlines()
+    log = open("../Log_Files/" + sys.argv[1] + "_log.csv", "w")
 
     writer = csv.writer(log)
     writer.writerow(["Num PEs", "Pipeline", "Merged QQ", "Joint Scratchpad", "Scratchpad 0 Size", "Scratchpad 0 Banks",  "Scratchpad 1 Size", "Scratchpad 1 Banks", "Scratchpad 2 Size", "Scratchpad 2 Banks","Ideal",
      "Queries Processed", "Nodes Visited", "Point Accesses", "Node Accesses", "Stack Accesses", 
      "Conflicts", "Stages Stalled", "Percent Time Stalled", "Lines Processed", "Num Cycles", "Average Cycles per Node Traversed"])
-    for config in configs:
-        s = configurate_simulator(config, queries, kd_tree)
+    for index, config in enumerate(configs):
+        s = configurate_simulator(config)
         s.run_sim()
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        percent = index / len(configs) * 100
+        print("\rSimulating " + sys.argv[1] + ": " + str(percent) + "%")
         results = s.print_results()
         writer.writerow(results)
+        log.flush()
+    log.close()
 
 
 
 
 
         
-def configurate_simulator(config, queries, kd_tree):
+def configurate_simulator(config):
+    
     scratchpads = []
     tokens = config.split()
+    kd_tree = KD_Tree("../kdTree_Inputs/" + tokens[0])
+    queries = open("../Query_Inputs/" + tokens[1]).readlines()
     #Pipelining options
-    if tokens[0] == "PIPELINED":
+    if tokens[2] == "PIPELINED":
         pipelined = True
-    elif tokens[0] == "NON-PIPELINED":
+    elif tokens[2] == "NON-PIPELINED":
         pipelined = False
     #Query queue options
-    if tokens[1] == "MERGED":
+    if tokens[3] == "MERGED":
         merged = True
-    elif tokens[1] == "NON-MERGED":
+    elif tokens[3] == "NON-MERGED":
         merged = False
-    if tokens[2] == "IDEAL":
+    if tokens[4] == "IDEAL":
         ideal = True
-    elif tokens[2] == "ACTUAL":
+    elif tokens[4] == "ACTUAL":
         ideal = False
-    num_PEs = int(tokens[3])
+    num_PEs = int(tokens[5])
     #Scratchpad options
-    if tokens[4] == "JOINT":
-        size = int(tokens[5])
-        num_banks = int(tokens[6])
+    if tokens[6] == "JOINT":
+        size = int(tokens[7])
+        num_banks = int(tokens[8])
         scratchpads.append(Scratchpad(size, num_banks))
-    elif tokens[4] == "SPLIT":
-        for i in range(3):
-            size = int(tokens[5 + (i * 2)])
-            num_banks = int(tokens[6 + (i * 2)])
+    elif tokens[6] == "SPLIT":
+        for i in range(5):
+            size = int(tokens[7 + (i * 2)])
+            num_banks = int(tokens[8 + (i * 2)])
             scratchpads.append(Scratchpad(size, num_banks))
     #Simulator is created and ran
     
