@@ -1,7 +1,6 @@
 #Gunnar Hammonds
 #Simulator for configurable point cloud accelerator. 
 
-from os import pipe
 from scratchpad import Scratchpad
 from kd_tree import KD_Tree
 from kd_tree import Point
@@ -9,7 +8,6 @@ from query import Query
 from pe import PE
 import csv
 import sys
-import logging
     
 #Represents high level simulator, contains PEs, as well as statistics on the current simulation
 class Simulator:
@@ -231,11 +229,6 @@ def main():
         writer.writerow(results)
         log.flush()
     log.close()
-
-
-
-
-
         
 def configurate_simulator(config):
     

@@ -1,7 +1,12 @@
+from collections import deque
+
+
+
 #Class representing indivudal query, contains list of instructions to be processed, as well as all current dependencies
 class Query:
     def __init__(self):
-        self.instructions = []
+        #self.instructions = []
+        self.instructions = deque()
         self.length = 0
         self.stalled = False
         self.backtrack = False
@@ -11,16 +16,6 @@ class Query:
         self.instructions.append(instruction)
         self.length += 1
 
-    #Adds dependency to set
-    def add_dependency(self, dep):
-        self.dependencies.add(dep)
-
-    def num_dependencies(self):
-        return len(self.dependencies)
-
-    #Removes processed depency from list
-    def remove_dependency(self, dep):
-        self.dependencies.discard(dep)
 
     #There are no more instructions to process
     def finished(self):
@@ -30,7 +25,7 @@ class Query:
     def next_instruction(self):
         if self.instructions:
             if not self.stalled:
-                self.current_instruction = self.instructions.pop(0)
+                self.current_instruction = self.instructions.popleft()
         else:
             return "?"
         

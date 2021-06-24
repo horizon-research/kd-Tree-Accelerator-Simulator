@@ -24,6 +24,7 @@ class PE:
                     if query_at_stage.finished():
                         sim.active_queries.remove(query_at_stage)
                         self.pipeline[stage] = None
+                    
                     #If query has completed pipeline sequence or has changed its backtracking status, it's reinserted into the queue
                     elif pipeline_switch or (stage == self.pipeline_size - 1) or (query_at_stage.backtrack and stage == self.backtrack_pipeline_size - 1):
                         self.pipeline[stage] = None
@@ -32,6 +33,7 @@ class PE:
                     elif self.pipeline[stage + 1] is None:
                         self.pipeline[stage] = None
                         self.pipeline[stage + 1] = query_at_stage
+                    
                 else:
                     sim.stages_stalled += stage + 1
 
@@ -50,6 +52,7 @@ class PE:
     #Attempts to process next instruction
     def process_line(self, sim, query, ideal):
         #If the PE isn't currently processing a query, nothing is done
+        pipeline_switch = False
         
         #Loads next instruction if not currently stalled
         if query.stalled:
@@ -58,7 +61,7 @@ class PE:
             self.lines_processed += 1
         line = query.current_instruction
         #Read
-        if line[0] == "R" or line[0] == "W":
+        if line[0] == "R":
             access_type = line[1]
             if not query.stalled:
                 sim.access_nums[access_type] += 1
@@ -76,9 +79,8 @@ class PE:
             else:
                 query.stalled = False
 
-        pipeline_switch = False
         #If there are no more instructions to be processed, the query is removed from the list of active queries, and the PE is ready to be assigned a new query
-        if query.instructions[0] == "BT":
+        elif query.instructions[0] == "BT":
             if not query.stalled:
                 query.next_instruction()
                 pipeline_switch = True
