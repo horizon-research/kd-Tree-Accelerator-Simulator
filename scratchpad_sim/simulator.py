@@ -264,7 +264,7 @@ def configurate_simulator(config):
         num_banks = int(tokens[8])
         scratchpads.append(Scratchpad(size, num_banks))
     elif tokens[6] == "SPLIT":
-        for i in range(5):
+        for i in range(3):
             size = int(tokens[7 + (i * 2)])
             num_banks = int(tokens[8 + (i * 2)])
             scratchpads.append(Scratchpad(size, num_banks))
