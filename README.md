@@ -10,10 +10,11 @@ Second, a simple simulation of an accelerator utilzing scratchpad memory, which 
 
 ### Scratchpad Simulator instructions:
 - In the scratchpad_sim folder, run in the format:
-  python3 simulator.py \<kd-Tree input> \<Query input> <Config Input>, where the input files are found in their respective folders  
+  python3 run.py \<Config Input> <# of simulations to be performed in parallel> 
 - Example:  
-  > python3 simulator.py test q1 c
-- Upon running the program, the user will be prompted to input their desired configuration for the accelerator, with the simulation being run on the inputted    configurations until the user wants to quit.
+  > python3 simulator.py test 2
+- The simulations results will be written a a csv log file
+- The number of simulations which can be run in parallel will vary based on computer specifications
   
  ### kd-Tree input format:
 - Points can be entered line by line in the format of three floating point numbers ex: 3.2 -1.1 4.3  
@@ -26,13 +27,17 @@ Second, a simple simulation of an accelerator utilzing scratchpad memory, which 
  ### Configuration input format:
 - Configurations can be entered line by line, and will be processed in that order
 - There are a number of parameters for the acclerator which can be configured
+- k-d Tree input file
+- Query Input File
 - Pipelined vs Non-Pipelined
+- Merged vs Non-Merged Query Queue
+- Ideal vs Actual Scratchpad Performance
 - Number of PEs
 - Joint vs Split Scratchpad (If split, scratchpad parameters will be entered once for each scratchpad)
 - Scratchpad Size (bytes)
 - Number of Scratchpad Banks
 - Examples
-  > PIPELINED 4 SPLIT 512000 4 512000 4 512000 4  
-  > NON-PIPELINED 1 JOINT 512000 8
+  > stat_input stat_queries0.25 PIPELINED NON-MERGED ACTUAL 1 SPLIT 5000000 1 5000000 1 5000000 1
+  > stat_input stat_queries0.25 NON-PIPELINED MERGED IDEAL 1 JOINT 5000000 1 
   
   
