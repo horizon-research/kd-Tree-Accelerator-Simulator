@@ -12,7 +12,7 @@ Second, a simple simulation of an accelerator utilzing scratchpad memory, which 
 - In the scratchpad_sim folder, run in the format:
   python3 run.py \<Config Input> <# of simulations to be performed in parallel> 
 - Example:  
-  > python3 simulator.py test 2
+  > python3 run.py test 2
 - The simulations results will be written a a csv log file
 - The number of simulations which can be run in parallel will vary based on computer specifications
   
