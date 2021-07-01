@@ -1,0 +1,2 @@
+Num PEs,Pipeline,Merged QQ,Joint Scratchpad,Scratchpad 0 Size,Scratchpad 0 Banks,Scratchpad 1 Size,Scratchpad 1 Banks,Scratchpad 2 Size,Scratchpad 2 Banks,Ideal,Queries Processed,Nodes Visited,Point Accesses,Node Accesses,Stack Accesses,Conflicts,Stages Stalled,Percent Time Stalled,Lines Processed,Num Cycles,Average Cycles per Node Traversed
+16,True,True,False,5000000,64,NA,NA,NA,NA,False,9465,138031,160682,160682,500976,187005,2410740,0.20954501835781042,5973629,22470,0.16278951829661453

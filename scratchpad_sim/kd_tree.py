@@ -46,6 +46,7 @@ class KD_Tree:
         #Well balanced tree created from points
         self.root = self.build_tree(points, 0, len(points) - 1, 0)
         self.tree_depth = self.depth(self.root, 0)
+        self.print_tree()
     def calculate_address_space(self, sim):
         #Pointers in memory to start of scratchpad sections are calculated
         self.memory_ptrs[NODE] = data_sizes[POINT] * (self.num_nodes + 1)
@@ -90,7 +91,7 @@ class KD_Tree:
         if tree:
             for i in range(level):
                 print("  ", end='')
-            print(tree.p)
+            print(f'{tree.p} {self.point_indices[tree.p]}')
             self.print_tree_rec(tree.left, level + 1)
             self.print_tree_rec(tree.right, level + 1)
 
@@ -210,3 +211,4 @@ class Node:
             self.right = None
             self.p = p
 
+KD_Tree("../kdTree_Inputs/test")

@@ -67,8 +67,10 @@ class Simulator:
             self.PEs.append(pe)
 
     #Prints resulting statistics
-    def print_results(self):
+    def print_results(self, kdtree, queries):
         results = []
+        results.append(kdtree)
+        results.append(queries)
         #print("\nSummary:")
         #print(f'Num PEs: {self.num_PEs}')
         results.append(self.num_PEs)
@@ -214,7 +216,7 @@ class Simulator:
 def main():
     
     configs = open("../Config_Inputs/" + sys.argv[1]).readlines()
-    log = open("../Log_Files/" + sys.argv[2] + ".csv", "w")
+    log = open("../Log_Files/" + sys.argv[2] + ".csv", "a")
     if len(sys.argv) == 5:
         start = int(sys.argv[3])
         end = int(sys.argv[4])
@@ -224,16 +226,14 @@ def main():
 
 
     writer = csv.writer(log)
-    writer.writerow(["Num_PEs", "Pipeline", "Merged_QQ", "Joint_Scratchpad", "Scratchpad_0_Size", "Scratchpad_0_Banks",  "Scratchpad_1_Size", "Scratchpad_1_Banks", "Scratchpad_2_Size", "Scratchpad 2 Banks","Ideal",
-     "Queries_Processed", "Nodes_Visited", "Point_Accesses", "Node_Accesses", "Stack_Accesses", 
-     "Conflicts", "Stages_Stalled", "Percent_Time_Stalled", "Lines_Processed", "Cycles", "Avg_Cycles_per_Node"])
     for i in range(start, end):
         config = configs[i]
-        s = configurate_simulator(config)
+        sim_data = configurate_simulator(config)
+        s = sim_data[0]
         percent = round(((i - start) / (end - start)) * 100)
         print("\rSimulating " + sys.argv[2] + ": " + str(percent) + "%")
         s.run_sim()
-        results = s.print_results()
+        results = s.print_results(sim_data[1], sim_data[2])
         writer.writerow(results)
         log.flush()
     print("Finished " + sys.argv[2])
@@ -274,7 +274,7 @@ def configurate_simulator(config):
     
     s = Simulator(kd_tree, queries, scratchpads, num_PEs, pipelined, merged, ideal)
     s.kd_tree.calculate_address_space(s)
-    return s
+    return (s, tokens[0], tokens[1])
 
    
 main()
