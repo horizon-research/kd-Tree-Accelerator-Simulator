@@ -25,7 +25,9 @@ class KD_Tree:
     #Constructs kd-Tree and initializes tracing information
     def __init__(self, data_in):
         self.num_dimensions = 3
+        self.num_toptree_nodes = 0
         self.num_nodes = 0
+        self.num_subtrees = 0
         self.root = None
         file = open(data_in)
         lines = file.readlines()
@@ -34,6 +36,9 @@ class KD_Tree:
         #Data indices saved for address calculation
         self.stack = []
         self.node_indices = {}
+        self.toptree_node_indices = {}
+        self.toptree_point_indices = {}
+
         self.point_indices = {}
         self.query_trace = None
         self.split = False
@@ -45,6 +50,8 @@ class KD_Tree:
         self.memory_ptrs = [0, 0, 0, 0]
         #Well balanced tree created from points
         self.root = self.build_tree(points, 0, len(points) - 1, 0)
+        self.toptree_levels = 3
+        self.assign_toptree(self.root, 0, self.toptree_levels)
         self.tree_depth = self.depth(self.root, 0)
         self.print_tree()
     def calculate_address_space(self, sim):
@@ -64,9 +71,9 @@ class KD_Tree:
             #Median point is inserted into tree
             p = points[median]
             n = Node(p)
-            self.point_indices[p] = self.num_nodes
-            self.node_indices[n] = self.num_nodes
-            self.num_nodes += 1
+            #self.point_indices[p] = self.num_nodes
+            #self.node_indices[n] = self.num_nodes
+            #self.num_nodes += 1
             #Function called recursivley to all points to the left and right of the median in the sublist, sorting dimension is incremented
             n.left = self.build_tree(points, lo, median - 1, level + 1)
             n.right = self.build_tree(points, median + 1, hi, level + 1)
@@ -74,6 +81,26 @@ class KD_Tree:
         else:
             return None
     
+    def assign_toptree(self, tree, level, top_level):
+        if level == top_level:
+            self.num_nodes = 0
+            self.assign_subtree(tree)
+        else:
+            self.toptree_node_indices[tree] = self.num_toptree_nodes
+            self.toptree_point_indices[tree.p] = self.num_toptree_nodes
+            self.num_toptree_nodes += 1
+
+            self.assign_toptree(tree.left, level + 1, top_level)
+            self.assign_toptree(tree.right, level + 1, top_level)
+    def assign_subtree(self, tree):
+        if tree:
+            self.node_indices[tree] = self.num_nodes
+            self.point_indices[tree.p] = self.num_nodes
+            self.num_nodes += 1
+            self.assign_subtree(tree.left)
+            self.assign_subtree(tree.right)
+
+
     def depth(self, tree, level):
         if tree:
             left_depth = self.depth(tree.left, level + 1)
@@ -91,7 +118,11 @@ class KD_Tree:
         if tree:
             for i in range(level):
                 print("  ", end='')
-            print(f'{tree.p} {self.point_indices[tree.p]}')
+            if level >= self.toptree_levels:
+                index = self.point_indices[tree.p]
+            else:
+                index = self.toptree_point_indices[tree.p]
+            print(f'{tree.p} {index}')
             self.print_tree_rec(tree.left, level + 1)
             self.print_tree_rec(tree.right, level + 1)
 
