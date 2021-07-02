@@ -1,3 +1,5 @@
+
+
 import numpy as np
 import queue
 
@@ -25,6 +27,7 @@ class Scratchpad:
         self.num_lines = self.size / self.linesize
         #Queue datastrcuture created for each bank, represents the memory acceses still waiting to be processed
         self.bank_reads = [None for i in range(self.num_banks)]
+        self.memory_segments = []
     
     #Bank is determined from physical address
     def get_bank(self, address):
@@ -56,3 +59,6 @@ class Scratchpad:
             self.bank_reads[i] = None
 
 
+class DRAM:
+    def __init__(self, size):
+        self.size = 0

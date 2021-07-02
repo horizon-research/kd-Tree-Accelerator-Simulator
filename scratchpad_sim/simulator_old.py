@@ -1,4 +1,4 @@
-from scratchpad import Scratchpad
+from memory import Scratchpad
 from kd_tree import KD_Tree
 from kd_tree import Point
 from query import Query
