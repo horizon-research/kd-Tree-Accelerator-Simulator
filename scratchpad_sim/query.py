@@ -28,5 +28,19 @@ class Query:
                 self.current_instruction = self.instructions.popleft()
         else:
             return "?"
+
+#Computes address for given address based on data type, data index, and offset, and writes it to the trace in a tuple
+def access(self, access_type, data_type, index, offset):
+    address = (data_sizes[data_type] * index) + offset
+    if not self.split:
+        address += self.memory_ptrs[data_type]
+    self.query_trace.add(("R", data_type, address))
+
+#Adds desired number of non access instructions to trace
+def computation(self, num):
+    for _ in range(num):
+        self.query_trace.add("C")
+def backtrack(self):
+    self.query_trace.add("BT")
         
             

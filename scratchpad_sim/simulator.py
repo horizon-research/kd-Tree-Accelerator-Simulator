@@ -71,62 +71,28 @@ class Simulator:
         results = []
         results.append(kdtree)
         results.append(queries)
-        #print("\nSummary:")
-        #print(f'Num PEs: {self.num_PEs}')
         results.append(self.num_PEs)
-
-        #print(f'Pipelined: {self.pipelined}')
         results.append(self.pipelined)
-
-        #print(f'Merged Query Queue: {self.merged_queues}')
         results.append(self.merged_queues)
-
-        config = 'Split' if self.split else 'Joint'
-        #print(f'Scratchpad Configuration: {config}\n')
         results.append(self.split)
         
         if self.split:
-            #print(f'Point scratchpad size: {self.scratchpads[0].size}')
-            #print(f'Point scratchpad banks: {self.scratchpads[0].num_banks}')
-
-            #print(f'Node scratchpad size: {self.scratchpads[1].size}')
-            #print(f'Node scratchpad banks: {self.scratchpads[1].num_banks}')
-
-            #print(f'Stack scratchpad size: {self.scratchpads[1].size}')
-            #print(f'Stack scratchpad banks: {self.scratchpads[1].num_banks}')
+            
             results += [self.scratchpads[0].size, self.scratchpads[0].num_banks, self.scratchpads[1].size, self.scratchpads[1].num_banks,self.scratchpads[2].size, self.scratchpads[2].num_banks]
         else:
-            #print(f'Scratchpad size: {self.scratchpads[0].size}')
-            #print(f'Scratchpad banks: {self.scratchpads[0].num_banks}')
+           
             results += [self.scratchpads[0].size, self.scratchpads[0].num_banks, "NA", "NA", "NA", "NA"]
 
-
-        #print(f'Ideal: {self.ideal}')
         results.append(self.ideal)
-
-        #print(f'\nNumber of queries processed: {self.num_queries}\n')
         results.append(self.num_queries)
-
-        #print(f'Number of nodes visited: {self.nodes_visited}')
         results.append(self.nodes_visited)
-
-        #print(f'Point accesses: {self.access_nums[0]}')
         results.append(self.access_nums[0])
-
-        #print(f'Node accesses: {self.access_nums[1]}')
         results.append(self.access_nums[1])
-
-        #print(f'Stack accesses: {self.access_nums[2]}\n')
         results.append(self.access_nums[2])
-
-        #print(f'Num conflicts: {self.num_conflicts}')
         results.append(self.num_conflicts)
-
-        #print(f'Total stages stalled: {self.stages_stalled}')
         results.append(self.stages_stalled)
 
         percent = self.stages_stalled / (self.pipeline_size * self.num_PEs * self.cycles)
-        #print(f'Percentage of time stalled : {percent}')
         results.append(percent)
 
 
@@ -136,18 +102,14 @@ class Simulator:
             sum += pe.lines_processed
             if pe.lines_processed > max:
                 max = pe.lines_processed
-        #print(f'Total lines processed: {sum}')
         results.append(sum)
 
-        #print(f'Actual num cycles: {self.cycles}')
         results.append(self.cycles)
 
         avg = self.cycles / self.nodes_visited
-        #print(f'Average cycles per node traversed: {avg}')
         results.append(avg)
         
         return results
-        #print(f'Ideal number of cycles per node traversed: {(self.pipeline_size + self.backtrack_pipeline_size) / (self.num_PEs * (self.pipeline_size + self.backtrack_pipeline_size) / 2)}')
 
     #Starts processing of queries, managing PEs to ensure they always have an assigned query if possible
     def run_sim(self):
