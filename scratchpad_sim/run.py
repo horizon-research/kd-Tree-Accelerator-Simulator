@@ -5,7 +5,10 @@ from math import floor
 
 file = sys.argv[1]
 num_parallel = int(sys.argv[2])
-
+if len(sys.argv) == 4 and sys.argv[3] == "-p":
+    profile = "-m cProfile "
+else:
+    profile = ""
 log = open("../Log_Files/" + file + "_log.csv", "w")
 #Writes first line of csv
 writer = csv.writer(log)
@@ -18,6 +21,6 @@ size = len(open("../Config_Inputs/" + file).readlines())
 #Calculates number of queries to be performed by each process, and runs them each as a background process
 length = size / num_parallel
 for i in range(num_parallel):
-    command = "python3 simulator.py " + file + " " + file + "_"  + "log " + str(floor(length * i)) + " " + str(floor(length * (i + 1))) + " &"
+    command = "python3 " + profile + "simulator.py " + file + " " + file + "_"  + "log " + str(floor(length * i)) + " " + str(floor(length * (i + 1))) + " &"
     print(command)
     system(command)

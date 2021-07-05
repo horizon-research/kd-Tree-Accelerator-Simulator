@@ -31,7 +31,7 @@ class Simulator:
         self.num_PEs = num_PEs
         self.PEs = []
         self.pipelined = pipelined
-        self.pipeline_size = 32
+        self.pipeline_size = 34
         self.backtrack_pipeline_size = 8
         self.ideal = ideal
         #Creates appropriate number of query queues

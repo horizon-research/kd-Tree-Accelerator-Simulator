@@ -51,14 +51,16 @@ class KD_Tree:
         #Well balanced tree created from points
         self.root = self.build_tree(points, 0, len(points) - 1, 0)
         self.toptree_levels = 3
-        self.assign_toptree(self.root, 0, self.toptree_levels)
+        #self.assign_toptree(self.root, 0, self.toptree_levels)
         self.tree_depth = self.depth(self.root, 0)
-        self.print_tree()
+        #self.print_tree()
+
     def calculate_address_space(self, sim):
         #Pointers in memory to start of scratchpad sections are calculated
         self.memory_ptrs[NODE] = data_sizes[POINT] * (self.num_nodes + 1)
         self.memory_ptrs[STACK] =self.memory_ptrs[NODE] + (data_sizes[NODE] *self.num_nodes)
         self.memory_ptrs[END] =self.memory_ptrs[STACK] + (data_sizes[STACK] * self.tree_depth)
+
     #Recursivley builds tree by selecting median points from each dimension
     def build_tree(self, points, lo, hi, level):
         if lo <= hi:
@@ -71,9 +73,9 @@ class KD_Tree:
             #Median point is inserted into tree
             p = points[median]
             n = Node(p)
-            #self.point_indices[p] = self.num_nodes
-            #self.node_indices[n] = self.num_nodes
-            #self.num_nodes += 1
+            self.point_indices[p] = self.num_nodes
+            self.node_indices[n] = self.num_nodes
+            self.num_nodes += 1
             #Function called recursivley to all points to the left and right of the median in the sublist, sorting dimension is incremented
             n.left = self.build_tree(points, lo, median - 1, level + 1)
             n.right = self.build_tree(points, median + 1, hi, level + 1)
@@ -111,20 +113,21 @@ class KD_Tree:
 
     #Prints tree
     def print_tree(self):
-        self.print_tree_rec(self.root, 0)
+        self.print_tree_rec(self.root, 0, False)
+
     #Recursively prints tree, insert padding based on the current nodes level in the tree
-    def print_tree_rec(self, tree, level):
-        time.sleep(0.02)
+    def print_tree_rec(self, tree, level, sub):
+        time.sleep(0.01)
         if tree:
             for i in range(level):
                 print("  ", end='')
-            if level >= self.toptree_levels:
+            if level >= self.toptree_levels and sub:
                 index = self.point_indices[tree.p]
             else:
-                index = self.toptree_point_indices[tree.p]
+                index = self.point_indices[tree.p]
             print(f'{tree.p} {index}')
-            self.print_tree_rec(tree.left, level + 1)
-            self.print_tree_rec(tree.right, level + 1)
+            self.print_tree_rec(tree.left, level + 1, sub)
+            self.print_tree_rec(tree.right, level + 1, sub)
 
     #k nearest-neighbour search
     def knn(self, query, k):
@@ -171,12 +174,16 @@ class KD_Tree:
             #If there are already k points in heap, add current point only if its distance is less than the farthest away point in heap
             self.computation(4)
             if len(current_best) == k:
-                if distance < current_best[0][0]:
+                if distance > current_best[0][0]:
                     heapq.heapreplace(current_best, current)
             #Otherwise, add
             else:
                 heapq.heappush(current_best, current)
-
+            self.computation(2)
+            if tree.right == None and tree.left == None:
+                self.backtrack()
+                self.access(READ, STACK, self.stack.pop(), 32)
+                return
 
             #NT 
             #If target value is less than current, take left subtree
@@ -215,10 +222,10 @@ class KD_Tree:
                     self.access(WRITE, STACK, call + 1, 0)
                     self.backtrack()
                     self.knn_rec(query, current_best, k, tree.left, level + 1)
-        #Return
         else:
             self.backtrack()
         self.access(READ, STACK, self.stack.pop(), 32)
+        
 
 
     #Computes address for given address based on data type, data index, and offset, and writes it to the trace in a tuple
@@ -242,4 +249,7 @@ class Node:
             self.right = None
             self.p = p
 
-KD_Tree("../kdTree_Inputs/test")
+tree = KD_Tree("../kdTree_Inputs/test")
+#tree.query_trace = Query()
+#p = Point([24, 0, 1])
+#print(tree.knn(p, 2))
