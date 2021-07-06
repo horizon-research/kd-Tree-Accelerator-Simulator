@@ -54,6 +54,7 @@ class KD_Tree:
         self.root = self.build_tree(points, 0, len(points) - 1, 0)
         self.toptree_levels = 3
         self.subtree_queues = [deque() for i in range(2**(self.toptree_levels + 1))]
+        self.query_size = 10 
         #self.assign_toptree(self.root, 0, self.toptree_levels)
         #self.tree_depth = self.depth(self.root, 0)
         #self.print_tree()
@@ -188,8 +189,7 @@ class KD_Tree:
             if tree.right == None and tree.left == None:
                 self.backtrack()
                 self.access(READ, STACK, self.stack.pop(), 32)
-                subtree_num = self.subtree_roots[tree]
-                self.subtree_queues[subtree_num].append((query, current_best))
+                
                 return
 
             #NT 
@@ -247,6 +247,11 @@ class KD_Tree:
             self.query_trace.add("C")
     def backtrack(self):
         self.query_trace.add("BT")
+    def insert(self, subtree):
+        self.query_trace.add(("I", subtree))
+    def load(self, subtree):
+        self.query_trace.add(("L  ", subtree))
+
 
 #Internal node class
 class Node:
@@ -308,6 +313,9 @@ def knn_top_rec(self, query, current_best, k, tree, level):
         if tree.right == None and tree.left == None:
             self.backtrack()
             self.access(READ, STACK, self.stack.pop(), 32)
+            subtree_num = self.subtree_roots[tree]
+            self.subtree_queues[subtree_num].append((query, current_best))
+
             return
 
         #NT 
