@@ -53,8 +53,7 @@ class KD_Tree:
         #Well balanced tree created from points
         self.root = self.build_tree(points, 0, len(points) - 1, 0)
         self.toptree_levels = 3
-        self.subtree_queues = [deque() for i in range(2**(self.toptree_levels + 1))]
-        self.query_size = 10 
+       
         #self.assign_toptree(self.root, 0, self.toptree_levels)
         #self.tree_depth = self.depth(self.root, 0)
         #self.print_tree()
@@ -248,9 +247,9 @@ class KD_Tree:
     def backtrack(self):
         self.query_trace.add("BT")
     def insert(self, subtree):
-        self.query_trace.add(("I", subtree))
+        self.query_trace.add(("SUB", subtree))
     def load(self, subtree):
-        self.query_trace.add(("L  ", subtree))
+        self.query_trace.add(("L", subtree))
 
 
 #Internal node class
