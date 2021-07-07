@@ -21,14 +21,8 @@ class PE:
                 #If the query has not stalled, it can be advacned to the next stage of the pipeline
                 if not query_at_stage.stalled:
                     #The the query has been completely finished it can be fully removed
-                    if query_at_stage.finished():
-                        sim.active_queries.remove(query_at_stage)
+                    if sim.query_to_queue(self, query_at_stage, stage):
                         self.pipeline[stage] = None
-                    
-                    #If query has completed pipeline sequence or has changed its backtracking status, it's reinserted into the queue
-                    elif pipeline_switch or (stage == self.pipeline_size - 1) or (query_at_stage.backtrack and stage == self.backtrack_pipeline_size - 1):
-                        self.pipeline[stage] = None
-                        sim.query_to_queue(self, query_at_stage)
                     #Otherwise, if the next stage of the pipeline is empty, i.e the next query being processed hasn't stalled, the query can be moved forward in the queue
                     elif self.pipeline[stage + 1] is None:
                         self.pipeline[stage] = None
@@ -78,7 +72,8 @@ class PE:
                     query.stalled = True
             else:
                 query.stalled = False
-
+        elif line[0] == "SUB":
+            query.subtree = int(line[1])
         #If there are no more instructions to be processed, the query is removed from the list of active queries, and the PE is ready to be assigned a new query
         elif query.instructions[0] == "BT":
             if not query.stalled:

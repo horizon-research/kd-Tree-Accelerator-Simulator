@@ -55,7 +55,7 @@ class KD_Tree:
         self.toptree_levels = 3
        
         #self.assign_toptree(self.root, 0, self.toptree_levels)
-        #self.tree_depth = self.depth(self.root, 0)
+        self.tree_depth = self.depth(self.root, 0)
         #self.print_tree()
 
     def calculate_address_space(self, sim):

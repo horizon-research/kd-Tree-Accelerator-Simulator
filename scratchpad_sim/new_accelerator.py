@@ -6,6 +6,7 @@ from kd_tree import KD_Tree
 from kd_tree import Point
 from query import Query
 from new_pe import PE
+from collections import deque
 import csv
 import sys
     
@@ -44,7 +45,10 @@ class Simulator:
                 self.query_queues.append([])
 
         self.active_queries = []
-
+        self.num_subtrees = 16
+        self.local_subtree_queues = [deque() for i in range(self.num_subtrees)]
+        self.subtree_queue_size = 16
+        self.subtree_queries  = [deque() for i in range(self.num_subtrees)]
         #PEs are initally assigned queries
         self.initialize_PEs(self.num_PEs)
 
@@ -75,14 +79,10 @@ class Simulator:
         results.append(self.pipelined)
         results.append(self.merged_queues)
         results.append(self.split)
-        
         if self.split:
-            
             results += [self.scratchpads[0].size, self.scratchpads[0].num_banks, self.scratchpads[1].size, self.scratchpads[1].num_banks,self.scratchpads[2].size, self.scratchpads[2].num_banks]
         else:
-           
             results += [self.scratchpads[0].size, self.scratchpads[0].num_banks, "NA", "NA", "NA", "NA"]
-
         results.append(self.ideal)
         results.append(self.num_queries)
         results.append(self.nodes_visited)
@@ -94,8 +94,6 @@ class Simulator:
 
         percent = self.stages_stalled / (self.pipeline_size * self.num_PEs * self.cycles)
         results.append(percent)
-
-
         sum = 0
         max = 0
         for pe in self.PEs:
@@ -103,16 +101,14 @@ class Simulator:
             if pe.lines_processed > max:
                 max = pe.lines_processed
         results.append(sum)
-
         results.append(self.cycles)
-
         avg = self.cycles / self.nodes_visited
         results.append(avg)
         
         return results
 
     #Starts processing of queries, managing PEs to ensure they always have an assigned query if possible
-    def run_sim(self):
+    def run_sim(self, toptree):
         #As long as at least one PE is processing instructions, the simulation continues
         while len(self.active_queries) > 0:
             for i in range(self.num_PEs): 
@@ -126,8 +122,18 @@ class Simulator:
             #Accesses processed during this cycle are returned
             for scratchpad in self.scratchpads:
                 scratchpad.clear_banks()
+            if toptree:
+                self.flush_queues()
             self.cycles += 1
+        if toptree:
+            for queue in self.subtree_queries:
+                self.active_queries.append(queue)
 
+    def flush_queues(self):
+        for i, queue in enumerate(self.local_subtree_queues):
+            if len(queue) == self.subtree_queue_size:
+                self.subtree_queries[i].extend(queue)
+                queue.clear()
 
     
     #Given PE is assigned a new query trace file
@@ -167,13 +173,28 @@ class Simulator:
             q.next_instruction()
             
     #Adds query which has just went through PE pipeline back to the query queue
-    def query_to_queue(self, pe, query):
-        
-        if self.merged_queues:
-            self.query_queues[0].append(query)
-        else:
-            index = self.PEs.index(pe)
-            self.query_queues[index].append(query)
+    def query_to_queue(self, pe, query, stage):
+        if query.finished():
+            self.active_queries.remove(query)
+            return True
+        elif query.subtree != -1:
+            queue = self.subtree_queues[query.subtree]
+            if len(queue) < self.subtree_queue_size:
+                self.subtree_queues[query.subtree].append(query)
+                self.active_queries.remove(query)
+                return True
+            else:
+                query.stalled = True
+                return False
+        elif query.backtrack and stage == self.backtrack_pipeline_size - 1 or stage == self.pipeline_size - 1:
+            if self.merged_queues:
+                self.query_queues[0].append(query)
+            else:
+                index = self.PEs.index(pe)
+                self.query_queues[index].append(query)
+            return True
+    
+        return False
            
 #Takes input and runs on according simulator
 def main():
