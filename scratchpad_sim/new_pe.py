@@ -1,4 +1,7 @@
 #Processing Engine class, contains Pe's current status, as well as thw query it's currently assigned to
+from os import pipe
+
+
 class PE:
     def __init__(self, pipeline_size, backtrack_pipeline_size):
         self.stalled = False
@@ -17,7 +20,7 @@ class PE:
             query_at_stage = self.pipeline[stage]
             if query_at_stage:
                 #Instruction is processed
-                pipeline_switch = self.process_line(sim, query_at_stage, sim.ideal)
+                self.process_line(sim, query_at_stage, sim.ideal)
                 #If the query has not stalled, it can be advacned to the next stage of the pipeline
                 if not query_at_stage.stalled:
                     #The the query has been completely finished it can be fully removed
@@ -46,7 +49,6 @@ class PE:
     #Attempts to process next instruction
     def process_line(self, sim, query, ideal):
         #If the PE isn't currently processing a query, nothing is done
-        pipeline_switch = False
         
         #Loads next instruction if not currently stalled
         if query.stalled:
@@ -55,6 +57,7 @@ class PE:
             self.lines_processed += 1
         line = query.current_instruction
         #Read
+        print(line)
         if line[0] == "R":
             access_type = line[1]
             if not query.stalled:
@@ -72,15 +75,18 @@ class PE:
                     query.stalled = True
             else:
                 query.stalled = False
-        elif line[0] == "SUB":
-            query.subtree = int(line[1])
+        elif query.instructions[0][0] == "SUB":
+            print("SUB")
+            query.subtree = int(query.instructions[0][1])
+            query.next_instruction()
+            return True
         #If there are no more instructions to be processed, the query is removed from the list of active queries, and the PE is ready to be assigned a new query
         elif query.instructions[0] == "BT":
             if not query.stalled:
                 query.next_instruction()
                 pipeline_switch = True
                 query.backtrack = not query.backtrack
+                return True
         if not query.stalled:
             query.next_instruction()
-        return pipeline_switch                    
-        
+        return False

@@ -2,13 +2,14 @@
 #Simulator for configurable point cloud accelerator. 
 
 from memory import Scratchpad
-from kd_tree import KD_Tree
-from kd_tree import Point
+from new_kd_tree import KD_Tree
+from new_kd_tree import Point
 from query import Query
 from new_pe import PE
 from collections import deque
 import csv
 import sys
+from time import sleep
     
 #Represents high level simulator, contains PEs, as well as statistics on the current simulation
 class Simulator:
@@ -22,7 +23,7 @@ class Simulator:
         self.kd_tree = kd_tree_in
         self.queries = queries_in
         self.num_queries = len(queries_in)
-
+        self.toptree = True
         #Query to be processed next
         self.nodes_visited = 0
         self.query_index = 0
@@ -45,7 +46,8 @@ class Simulator:
                 self.query_queues.append([])
 
         self.active_queries = []
-        self.num_subtrees = 16
+        self.num_subtrees = 2**self.kd_tree.toptree_levels
+        print(self.num_subtrees)
         self.local_subtree_queues = [deque() for i in range(self.num_subtrees)]
         self.subtree_queue_size = 16
         self.subtree_queries  = [deque() for i in range(self.num_subtrees)]
@@ -108,8 +110,11 @@ class Simulator:
         return results
 
     #Starts processing of queries, managing PEs to ensure they always have an assigned query if possible
-    def run_sim(self, toptree):
+    def run_sim(self):
         #As long as at least one PE is processing instructions, the simulation continues
+        print(self.toptree)
+        print(self.active_queries)
+        print("@")
         while len(self.active_queries) > 0:
             for i in range(self.num_PEs): 
                 pe = self.PEs[i]
@@ -122,23 +127,32 @@ class Simulator:
             #Accesses processed during this cycle are returned
             for scratchpad in self.scratchpads:
                 scratchpad.clear_banks()
-            if toptree:
-                self.flush_queues()
+            if self.toptree:
+                for i, queue in enumerate(self.local_subtree_queues):
+                    if len(queue) == self.subtree_queue_size:
+                        self.flush_queues(i, queue)
             self.cycles += 1
-        if toptree:
-            for queue in self.subtree_queries:
-                self.active_queries.append(queue)
 
-    def flush_queues(self):
-        for i, queue in enumerate(self.local_subtree_queues):
-            if len(queue) == self.subtree_queue_size:
-                self.subtree_queries[i].extend(queue)
-                queue.clear()
+        if self.toptree:
+            for i, queue in enumerate(self.local_subtree_queues):
+                self.flush_queues(i, queue)
+
+            print(self.active_queries)
+            for queue in self.subtree_queries:
+                self.active_queries.extend(queue)
+                self.query_queues[0].extend(queue)
+            self.toptree = False
+            self.run_sim()
+
+    def flush_queues(self, index, queue):
+        self.subtree_queries[index].extend(queue)
+        queue.clear()
 
     
     #Given PE is assigned a new query trace file
     def assign_query(self, index, pe):
         query_queue = None
+        
         #Uses either universal queue or queue assigned to PE based on simulator configuration
         if not self.merged_queues:
             query_queue = self.query_queues[index]
@@ -147,12 +161,14 @@ class Simulator:
         
         #If there are queries in the queue, one is taken out and assigned to the PE
         if query_queue:
+            print("!!!!#")
             q = query_queue.pop()
             if not q.backtrack:
                 self.nodes_visited += 1
             pe.pipeline[0] = q
         #Otherwise, a new query trace has to be generated from the inputted list of queries
         elif self.query_index < self.num_queries:
+            print("!!!!#")
             line = self.queries[self.query_index]
             q = Query()
             self.kd_tree.query_trace = q
@@ -165,27 +181,34 @@ class Simulator:
             if tokens[0] == "KNN":
                 p = Point(tokens[1:4])
                 k = int(tokens[4])
-                self.kd_tree.knn(p, k)
+                if self.toptree:
+                    self.kd_tree.knn_top(p, k)
+                else:
+                    self.kd_tree.knn(p, k)
                 
             else:
                 print("Unknown query")
                 exit()
             q.next_instruction()
+        
+
             
     #Adds query which has just went through PE pipeline back to the query queue
     def query_to_queue(self, pe, query, stage):
-        if query.finished():
-            self.active_queries.remove(query)
-            return True
-        elif query.subtree != -1:
-            queue = self.subtree_queues[query.subtree]
+        
+        if query.subtree != -1:
+            queue = self.local_subtree_queues[query.subtree]
             if len(queue) < self.subtree_queue_size:
-                self.subtree_queues[query.subtree].append(query)
+                self.local_subtree_queues[query.subtree].append(query)
                 self.active_queries.remove(query)
                 return True
             else:
                 query.stalled = True
                 return False
+        elif query.finished():
+            print("###")
+            self.active_queries.remove(query)
+            return True
         elif query.backtrack and stage == self.backtrack_pipeline_size - 1 or stage == self.pipeline_size - 1:
             if self.merged_queues:
                 self.query_queues[0].append(query)

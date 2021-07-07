@@ -10,7 +10,8 @@ class Query:
         self.length = 0
         self.stalled = False
         self.backtrack = False
-
+        self.subtree = -1
+        self.heap = None
     #Adds instruction tuple to list
     def add(self, instruction):
         self.instructions.append(instruction)
