@@ -56,8 +56,8 @@ class PE:
         else:
             self.lines_processed += 1
         line = query.current_instruction
-        #Read
         print(line)
+        #Read
         if line[0] == "R":
             access_type = line[1]
             if not query.stalled:
@@ -79,14 +79,12 @@ class PE:
             print("SUB")
             query.subtree = int(query.instructions[0][1])
             query.next_instruction()
-            return True
         #If there are no more instructions to be processed, the query is removed from the list of active queries, and the PE is ready to be assigned a new query
         elif query.instructions[0] == "BT":
             if not query.stalled:
                 query.next_instruction()
                 pipeline_switch = True
                 query.backtrack = not query.backtrack
-                return True
         if not query.stalled:
             query.next_instruction()
         return False

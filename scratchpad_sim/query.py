@@ -12,6 +12,7 @@ class Query:
         self.backtrack = False
         self.subtree = -1
         self.heap = None
+        self.p = None
     #Adds instruction tuple to list
     def add(self, instruction):
         self.instructions.append(instruction)

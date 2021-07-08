@@ -113,7 +113,6 @@ class Simulator:
     def run_sim(self):
         #As long as at least one PE is processing instructions, the simulation continues
         print(self.toptree)
-        print(self.active_queries)
         print("@")
         while len(self.active_queries) > 0:
             for i in range(self.num_PEs): 
@@ -137,11 +136,11 @@ class Simulator:
             for i, queue in enumerate(self.local_subtree_queues):
                 self.flush_queues(i, queue)
 
-            print(self.active_queries)
             for queue in self.subtree_queries:
                 self.active_queries.extend(queue)
                 self.query_queues[0].extend(queue)
             self.toptree = False
+            import pdb; pdb.set_trace()
             self.run_sim()
 
     def flush_queues(self, index, queue):
@@ -161,14 +160,13 @@ class Simulator:
         
         #If there are queries in the queue, one is taken out and assigned to the PE
         if query_queue:
-            print("!!!!#")
             q = query_queue.pop()
             if not q.backtrack:
                 self.nodes_visited += 1
             pe.pipeline[0] = q
+            print(f"{q.p} {q.subtree}")
         #Otherwise, a new query trace has to be generated from the inputted list of queries
         elif self.query_index < self.num_queries:
-            print("!!!!#")
             line = self.queries[self.query_index]
             q = Query()
             self.kd_tree.query_trace = q
@@ -183,8 +181,7 @@ class Simulator:
                 k = int(tokens[4])
                 if self.toptree:
                     self.kd_tree.knn_top(p, k)
-                else:
-                    self.kd_tree.knn(p, k)
+                q.p = p
                 
             else:
                 print("Unknown query")
@@ -198,9 +195,11 @@ class Simulator:
         
         if query.subtree != -1:
             queue = self.local_subtree_queues[query.subtree]
+            
             if len(queue) < self.subtree_queue_size:
                 self.local_subtree_queues[query.subtree].append(query)
                 self.active_queries.remove(query)
+                query.subtree = -1
                 return True
             else:
                 query.stalled = True

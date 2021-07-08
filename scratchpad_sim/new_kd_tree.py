@@ -270,7 +270,6 @@ class KD_Tree:
     def knn_top_rec(self, query, current_best, k, tree, level):
         call = self.stack[-1]
         #RS
-        print(f'{tree.p} top')
         self.access(READ, STACK, call, 0) #Query
         #print(tree.p)
         #print(query)
