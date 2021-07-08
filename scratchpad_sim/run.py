@@ -21,6 +21,8 @@ size = len(open("../Config_Inputs/" + file).readlines())
 #Calculates number of queries to be performed by each process, and runs them each as a background process
 length = size / num_parallel
 for i in range(num_parallel):
-    command = "python3 " + profile + "simulator.py " + file + " " + file + "_"  + "log " + str(floor(length * i)) + " " + str(floor(length * (i + 1))) + " &"
+    #command = "python3 " + profile + "simulator.py " + file + " " + file + "_"  + "log " + str(floor(length * i)) + " " + str(floor(length * (i + 1))) + " &"
+    command = "python3 " + profile + "new_accelerator.py " + file + " " + file + "_"  + "log " + str(floor(length * i)) + " " + str(floor(length * (i + 1))) + " &"
+
     print(command)
     system(command)

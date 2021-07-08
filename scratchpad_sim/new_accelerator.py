@@ -140,7 +140,6 @@ class Simulator:
                 self.active_queries.extend(queue)
                 self.query_queues[0].extend(queue)
             self.toptree = False
-            import pdb; pdb.set_trace()
             self.run_sim()
 
     def flush_queues(self, index, queue):
@@ -205,7 +204,6 @@ class Simulator:
                 query.stalled = True
                 return False
         elif query.finished():
-            print("###")
             self.active_queries.remove(query)
             return True
         elif query.backtrack and stage == self.backtrack_pipeline_size - 1 or stage == self.pipeline_size - 1:
