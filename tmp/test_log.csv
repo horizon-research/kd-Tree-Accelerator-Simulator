@@ -1,2 +1,2 @@
 kd_Tree_File,Query_File,Num_PEs,Pipeline,Merged_QQ,Split_Scratchpad,Scratchpad_0_Size,Scratchpad_0_Banks,Scratchpad_1_Size,Scratchpad_1_Banks,Scratchpad_2_Size,Scratchpad_2_Banks,Ideal,Queries_Processed,Nodes_Visited,Point_Accesses,Node_Accesses,Stack_Accesses,Conflicts,Stages_Stalled,Percent_Time_Stalled,Lines_Processed,Cycles,Avg_Cycles_per_Node
-test,test3,1,True,True,False,5000000,8,NA,NA,NA,NA,False,1,4,4,4,12,0,0,0.0,146,147,36.75
+stat_input,stat_queries0.25_random,4,True,True,False,5000000,8,NA,NA,NA,NA,False,29814,405767,506048,506048,1577772,2315658,25148447,0.5122213791716744,18813218,383569,0.9452937276811569
