@@ -44,6 +44,7 @@ class KD_Tree:
         self.point_indices = {}
         self.query_trace = None
         self.split = False
+        self.memory = None
         #Array of points constructed from input file
         for line in lines:
             tokens = line.split()

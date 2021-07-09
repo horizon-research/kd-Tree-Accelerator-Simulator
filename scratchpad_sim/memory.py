@@ -2,8 +2,55 @@
 
 import numpy as np
 import queue
+READ = 0
+WRITE = 1
 
+POINT = 0
+NODE = 1
+STACK = 2
+END = 3
+X = 0
+Y = 4
+Z = 8
 
+P = 0
+LEFT = 8
+RIGHT = 16
+
+#Constants which make trace writes more readable
+data_sizes = [16, 24, 40]
+
+class Memory:
+    def __init_(self, scratchpads, dram):
+        self.scratchpads = scratchpads
+        self.split = len(self.scratchpads) > 1
+        self.DRAM = dram
+        self.ideal = ideal
+    def calculate_address_space(self, sim):
+        #Pointers in memory to start of scratchpad sections are calculated
+        self.memory_ptrs[NODE] = data_sizes[POINT] * (self.num_nodes + 1)
+        self.memory_ptrs[STACK] =self.memory_ptrs[NODE] + (data_sizes[NODE] *self.num_nodes)
+        self.memory_ptrs[END] =self.memory_ptrs[STACK] + (data_sizes[STACK] * self.tree_depth)
+    
+    #Computes address for given address based on data type, data index, and offset, and writes it to the trace in a tuple
+    def access(self, access_type, data_type, index, offset):
+        address = (data_sizes[data_type] * index) + offset
+        if not self.split:
+            address += self.memory_ptrs[data_type]
+        self.query_trace.add(("R", data_type, address))
+    def scratchpad_read(self, access_type, address):
+        if self.split:
+                scratchpad = self.scratchpads[access_type]
+        else:
+            scratchpad = self.scratchpads[0]
+        return scratchpad.read(address)
+
+    def address(self, data_type, index, offset):
+        address = (data_sizes[data_type] * index) + offset
+        if not self.split:
+            address += self.memory_ptrs[data_type]
+        return address
+           
 #Represents scratchpad architecture
 class Scratchpad:
     
@@ -29,6 +76,7 @@ class Scratchpad:
         self.bank_reads = [None for i in range(self.num_banks)]
         self.memory_segments = []
     
+
     #Bank is determined from physical address
     def get_bank(self, address):
         return (address & self.bank_mask) >> self.offset_bits
@@ -51,6 +99,8 @@ class Scratchpad:
         else:
             self.bank_reads[bank] = address
         return conflict
+
+
 
 
     #Removes first element in each bank queue, representing the reads processed for this cycle

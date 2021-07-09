@@ -32,10 +32,8 @@ class Query:
             return "?"
 
 #Computes address for given address based on data type, data index, and offset, and writes it to the trace in a tuple
-def access(self, access_type, data_type, index, offset):
-    address = (data_sizes[data_type] * index) + offset
-    if not self.split:
-        address += self.memory_ptrs[data_type]
+def access(self, access_type, data_type, index, offset, memory):
+    address = memory.address()
     self.query_trace.add(("R", data_type, address))
 
 #Adds desired number of non access instructions to trace
@@ -45,4 +43,7 @@ def computation(self, num):
 def backtrack(self):
     self.query_trace.add("BT")
         
-            
+def insert(self, subtree):
+    self.query_trace.add(("SUB", subtree))
+def load(self, subtree):
+    self.query_trace.add(("L", subtree))
