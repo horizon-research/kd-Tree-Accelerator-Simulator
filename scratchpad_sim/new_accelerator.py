@@ -113,11 +113,10 @@ class Simulator:
     def run_sim(self):
         #As long as at least one PE is processing instructions, the simulation continues
         print(self.toptree)
-        print("@")
         while len(self.active_queries) > 0:
+            print(len(self.active_queries))
             for i in range(self.num_PEs): 
                 pe = self.PEs[i]
-                
                 pe.manage_pipeline(self)
                 
                 #If the PE has an open spot in its pipeline a new query is attempted to be assigned to the PE
@@ -160,6 +159,8 @@ class Simulator:
         #If there are queries in the queue, one is taken out and assigned to the PE
         if query_queue:
             q = query_queue.pop()
+            if q in query_queue:
+                print("^^^^^^^^^^^^^^^^^^")
             if not q.backtrack:
                 self.nodes_visited += 1
             pe.pipeline[0] = q
@@ -192,21 +193,27 @@ class Simulator:
     #Adds query which has just went through PE pipeline back to the query queue
     def query_to_queue(self, pe, query, stage):
         
-        if query.subtree != -1:
+        if query.subtree > -1:
             queue = self.local_subtree_queues[query.subtree]
-            
             if len(queue) < self.subtree_queue_size:
+                query.stalled = False
                 self.local_subtree_queues[query.subtree].append(query)
                 self.active_queries.remove(query)
-                query.subtree = -1
+                if query.stalled:
+                    query.subtree = -3
+                else:
+                    query.subtree = -2
                 return True
             else:
+                
                 query.stalled = True
                 return False
         elif query.finished():
             self.active_queries.remove(query)
+            query.stalled = False
+            print(f'{query} $$$$$$$$$$$$$$$$$$$')
             return True
-        elif query.backtrack and stage == self.backtrack_pipeline_size - 1 or stage == self.pipeline_size - 1:
+        elif (query.backtrack and stage == self.backtrack_pipeline_size - 1) or stage == self.pipeline_size - 1:
             if self.merged_queues:
                 self.query_queues[0].append(query)
             else:

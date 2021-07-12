@@ -14,7 +14,6 @@ class PE:
         self.backtrack_pipeline = [None for i in range(self.backtrack_pipeline_size)]
     #Manages all queries currently in pipeline, processing their instrucitons for this cycle, and moving them through the pipeline if a stall hasn't occured
     def manage_pipeline(self, sim):
-        
         #Iterates through queries in pipeline, starting with query closest to finish
         for stage in range(self.pipeline_size - 1, -1, -1):
             query_at_stage = self.pipeline[stage]
@@ -22,15 +21,16 @@ class PE:
                 #Instruction is processed
                 self.process_line(sim, query_at_stage, sim.ideal)
                 #If the query has not stalled, it can be advacned to the next stage of the pipeline
+                
+                #The the query has been completely finished it can be fully removed
+                if sim.query_to_queue(self, query_at_stage, stage) and not query_at_stage.stalled:
+                    self.pipeline[stage] = None
+                #Otherwise, if the next stage of the pipeline is empty, i.e the next query being processed hasn't stalled, the query can be moved forward in the queue
+                elif stage < sim.pipeline_size - 1 and self.pipeline[stage + 1] is None and not query_at_stage.stalled:
+                    self.pipeline[stage] = None
+                    self.pipeline[stage + 1] = query_at_stage
                 if not query_at_stage.stalled:
-                    #The the query has been completely finished it can be fully removed
-                    if sim.query_to_queue(self, query_at_stage, stage):
-                        self.pipeline[stage] = None
-                    #Otherwise, if the next stage of the pipeline is empty, i.e the next query being processed hasn't stalled, the query can be moved forward in the queue
-                    elif self.pipeline[stage + 1] is None:
-                        self.pipeline[stage] = None
-                        self.pipeline[stage + 1] = query_at_stage
-                    
+                    query_at_stage.next_instruction()
                 else:
                     sim.stages_stalled += stage + 1
 
@@ -72,16 +72,12 @@ class PE:
                     query.stalled = True
             else:
                 query.stalled = False
-        elif query.instructions[0][0] == "SUB":
+        elif line[0] == "SUB":
             #print("SUB")
-            query.subtree = int(query.instructions[0][1])
-            query.next_instruction()
+            query.subtree = int(line[1])
         #If there are no more instructions to be processed, the query is removed from the list of active queries, and the PE is ready to be assigned a new query
-        elif query.instructions[0] == "BT":
+        elif line[0] == "BT":
             if not query.stalled:
-                query.next_instruction()
                 pipeline_switch = True
                 query.backtrack = not query.backtrack
-        if not query.stalled:
-            query.next_instruction()
-        return False
+        
