@@ -32,8 +32,8 @@ class Query:
             return "?"
 
 #Computes address for given address based on data type, data index, and offset, and writes it to the trace in a tuple
-def access(self, access_type, data_type, index, offset, memory):
-    address = memory.address()
+def access(self, data_type, index, offset, memory):
+    address = memory.address(data_type, index, offset)
     self.query_trace.add(("R", data_type, address))
 
 #Adds desired number of non access instructions to trace

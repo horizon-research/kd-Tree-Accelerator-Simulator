@@ -1,7 +1,7 @@
 #Gunnar Hammonds
 #Simulator for configurable point cloud accelerator. 
 
-from memory import Scratchpad
+from memory import Memory, DRAM, Scratchpad
 from new_kd_tree import KD_Tree
 from new_kd_tree import Point
 from query import Query
@@ -16,7 +16,7 @@ class Simulator:
     def __init__(self, kd_tree_in, queries_in, scratchpads, num_PEs, pipelined, merged_queues, ideal):
         #Scratchpad setup
         self.split = False
-        self.scratchpads = scratchpads
+        self.memory = Memory(scratchpads, None)
         if len(scratchpads) > 1:
             self.split = True
 
@@ -82,9 +82,9 @@ class Simulator:
         results.append(self.merged_queues)
         results.append(self.split)
         if self.split:
-            results += [self.scratchpads[0].size, self.scratchpads[0].num_banks, self.scratchpads[1].size, self.scratchpads[1].num_banks,self.scratchpads[2].size, self.scratchpads[2].num_banks]
+            results += [self.memory.scratchpads[0].size, self.memory.scratchpads[0].num_banks, self.memory.scratchpads[1].size, self.memory.scratchpads[1].num_banks,self.memory.scratchpads[2].size, self.memory.scratchpads[2].num_banks]
         else:
-            results += [self.scratchpads[0].size, self.scratchpads[0].num_banks, "NA", "NA", "NA", "NA"]
+            results += [self.memory.scratchpads[0].size, self.memory.scratchpads[0].num_banks, "NA", "NA", "NA", "NA"]
         results.append(self.ideal)
         results.append(self.num_queries)
         results.append(self.nodes_visited)
@@ -124,7 +124,7 @@ class Simulator:
                 if pe.pipeline_open(self.pipelined):
                     self.assign_query(i, pe)
             #Accesses processed during this cycle are returned
-            for scratchpad in self.scratchpads:
+            for scratchpad in self.memory.scratchpads:
                 scratchpad.clear_banks()
             if self.toptree:
                 for i, queue in enumerate(self.local_subtree_queues):
@@ -163,7 +163,7 @@ class Simulator:
             if not q.backtrack:
                 self.nodes_visited += 1
             pe.pipeline[0] = q
-            print(f"{q.p} {q.subtree}")
+            #print(f"{q.p} {q.subtree}")
         #Otherwise, a new query trace has to be generated from the inputted list of queries
         elif self.query_index < self.num_queries:
             line = self.queries[self.query_index]

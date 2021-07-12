@@ -56,7 +56,7 @@ class PE:
         else:
             self.lines_processed += 1
         line = query.current_instruction
-        print(line)
+        #print(line)
         #Read
         if line[0] == "R":
             access_type = line[1]
@@ -65,18 +65,15 @@ class PE:
             address = line[2]
             
             #If true is returned there was a bank conflict
-            if sim.split:
-                scratchpad = sim.scratchpads[access_type]
-            else:
-                scratchpad = sim.scratchpads[0]
-            if scratchpad.read(address):
+            
+            if sim.memory.read(access_type, address):
                 sim.num_conflicts += 1
                 if not ideal:
                     query.stalled = True
             else:
                 query.stalled = False
         elif query.instructions[0][0] == "SUB":
-            print("SUB")
+            #print("SUB")
             query.subtree = int(query.instructions[0][1])
             query.next_instruction()
         #If there are no more instructions to be processed, the query is removed from the list of active queries, and the PE is ready to be assigned a new query

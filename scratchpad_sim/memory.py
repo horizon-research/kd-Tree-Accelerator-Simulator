@@ -21,11 +21,10 @@ RIGHT = 16
 data_sizes = [16, 24, 40]
 
 class Memory:
-    def __init_(self, scratchpads, dram):
+    def __init__(self, scratchpads, dram):
         self.scratchpads = scratchpads
         self.split = len(self.scratchpads) > 1
         self.DRAM = dram
-        self.ideal = ideal
     def calculate_address_space(self, sim):
         #Pointers in memory to start of scratchpad sections are calculated
         self.memory_ptrs[NODE] = data_sizes[POINT] * (self.num_nodes + 1)
@@ -33,12 +32,8 @@ class Memory:
         self.memory_ptrs[END] =self.memory_ptrs[STACK] + (data_sizes[STACK] * self.tree_depth)
     
     #Computes address for given address based on data type, data index, and offset, and writes it to the trace in a tuple
-    def access(self, access_type, data_type, index, offset):
-        address = (data_sizes[data_type] * index) + offset
-        if not self.split:
-            address += self.memory_ptrs[data_type]
-        self.query_trace.add(("R", data_type, address))
-    def scratchpad_read(self, access_type, address):
+    
+    def read(self, access_type, address):
         if self.split:
                 scratchpad = self.scratchpads[access_type]
         else:

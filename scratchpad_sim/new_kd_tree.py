@@ -35,6 +35,7 @@ class KD_Tree:
         points = []
 
         #Data indices saved for address calculation
+        self.memory = None
         self.stack = []
         self.subtree_roots = {}
         self.node_indices = {}
@@ -57,7 +58,7 @@ class KD_Tree:
        
         self.assign_toptree(self.root, 0, self.toptree_levels)
         self.tree_depth = self.depth(self.root, 0)
-        self.print_tree()
+        #self.print_tree()
 
     def calculate_address_space(self, sim):
         #Pointers in memory to start of scratchpad sections are calculated
