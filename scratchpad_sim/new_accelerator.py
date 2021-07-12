@@ -136,7 +136,7 @@ class Simulator:
             for i, queue in enumerate(self.local_subtree_queues):
                 self.flush_queues(i, queue)
 
-            for queue in self.subtree_queries:
+            for queue in reversed(self.subtree_queries):
                 self.active_queries.extend(queue)
                 self.query_queues[0].extend(queue)
             self.toptree = False
