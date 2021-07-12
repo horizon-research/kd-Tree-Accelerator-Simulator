@@ -134,7 +134,7 @@ class Simulator:
         if self.toptree:
             for i, queue in enumerate(self.local_subtree_queues):
                 self.flush_queues(i, queue)
-
+            
             for queue in reversed(self.subtree_queries):
                 self.active_queries.extend(queue)
                 self.query_queues[0].extend(queue)
@@ -181,7 +181,7 @@ class Simulator:
                 k = int(tokens[4])
                 if self.toptree:
                     self.kd_tree.knn_top(p, k)
-                q.p = p
+                
                 
             else:
                 print("Unknown query")
@@ -213,7 +213,7 @@ class Simulator:
             query.stalled = False
             print(f'{query} $$$$$$$$$$$$$$$$$$$')
             return True
-        elif (query.backtrack and stage == self.backtrack_pipeline_size - 1) or stage == self.pipeline_size - 1:
+        elif ((query.backtrack and stage == self.backtrack_pipeline_size - 1) or stage == self.pipeline_size - 1) and not query.stalled:
             if self.merged_queues:
                 self.query_queues[0].append(query)
             else:

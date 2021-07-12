@@ -26,7 +26,7 @@ class PE:
                 if sim.query_to_queue(self, query_at_stage, stage) and not query_at_stage.stalled:
                     self.pipeline[stage] = None
                 #Otherwise, if the next stage of the pipeline is empty, i.e the next query being processed hasn't stalled, the query can be moved forward in the queue
-                elif stage < sim.pipeline_size - 1 and self.pipeline[stage + 1] is None and not query_at_stage.stalled:
+                elif stage < sim.pipeline_size - 1 and (self.pipeline[stage + 1] is None) and not query_at_stage.stalled:
                     self.pipeline[stage] = None
                     self.pipeline[stage + 1] = query_at_stage
                 if not query_at_stage.stalled:
