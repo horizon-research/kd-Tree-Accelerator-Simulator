@@ -16,7 +16,7 @@ class Simulator:
     def __init__(self, kd_tree_in, queries_in, scratchpads, num_PEs, pipelined, merged_queues, ideal):
         #Scratchpad setup
         self.split = False
-        self.memory = Memory(scratchpads, None)
+        self.memory = Memory(True, scratchpads, None)
         if len(scratchpads) > 1:
             self.split = True
 
@@ -287,7 +287,7 @@ def configurate_simulator(config):
         num_banks = int(tokens[8])
         scratchpads.append(Scratchpad(size, num_banks))
     elif tokens[6] == "SPLIT":
-        for i in range(3):
+        for i in range(4):
             size = int(tokens[7 + (i * 2)])
             num_banks = int(tokens[8 + (i * 2)])
             scratchpads.append(Scratchpad(size, num_banks))

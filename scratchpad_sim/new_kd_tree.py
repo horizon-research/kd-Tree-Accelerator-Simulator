@@ -4,7 +4,8 @@ from point import Point
 import time
 from collections import deque
 #Constants which make trace writes more readable
-data_sizes = [16, 24, 40]
+data_sizes = [16, 24, 16, 24, 40, 24]
+
 READ = 0
 WRITE = 1
 

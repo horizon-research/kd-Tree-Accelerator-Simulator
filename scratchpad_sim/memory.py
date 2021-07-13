@@ -1,5 +1,5 @@
 
-
+from copy import deepcopy
 import numpy as np
 import queue
 READ = 0
@@ -21,10 +21,10 @@ LEFT = 8
 RIGHT = 16
 LOAD_CYCLES = 10
 #Constants which make trace writes more readable
-data_sizes = [16, 24, 40, 24]
+data_sizes = [16, 24, 16, 24, 40, 24]
 
 class Memory:
-    def __init__(self, split, duplicated, scratchpads,  dram):
+    def __init__(self,  duplicated, scratchpads,  dram):
         #self.scratchpads = scratchpads
         
         self.scratchpads = scratchpads
@@ -33,8 +33,9 @@ class Memory:
         self.ready = [True, True, True, True, True, True]
         self.processing_loads = []
         if duplicated:
-            for spad in scratchpads:
-                self.scratchpads.append(spad.copy)
+            for i in range(len(scratchpads)):
+                spad = scratchpads[i]
+                self.scratchpads.append(deepcopy(spad))
         
         self.split = len(self.scratchpads) > 1
         self.DRAM = dram
