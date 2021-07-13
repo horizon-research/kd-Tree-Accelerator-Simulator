@@ -36,6 +36,7 @@ class Simulator:
         self.pipeline_size = 34
         self.backtrack_pipeline_size = 8
         self.ideal = ideal
+        
         #Creates appropriate number of query queues
         self.merged_queues = merged_queues
         self.query_queues = []
@@ -51,6 +52,7 @@ class Simulator:
         self.local_subtree_queues = [deque() for i in range(self.num_subtrees)]
         self.subtree_queue_size = 16
         self.subtree_queries  = [deque() for i in range(self.num_subtrees)]
+        self.current_subtree = -1
         #PEs are initally assigned queries
         self.initialize_PEs(self.num_PEs)
 
@@ -62,6 +64,10 @@ class Simulator:
         self.stalled_cycles = 0
         self.access_nums = [0, 0, 0]
         self.cycles = 0
+        self.memory.load(0)
+        self.memory.load(1)
+        self.memory.load(2)
+        self.memory.load(3)
 
     #Creates desired number of PEs, assigns them inital queries to process
     def initialize_PEs(self, num_PEs):
@@ -123,8 +129,8 @@ class Simulator:
                 if pe.pipeline_open(self.pipelined):
                     self.assign_query(i, pe)
             #Accesses processed during this cycle are returned
-            for scratchpad in self.memory.scratchpads:
-                scratchpad.clear_banks()
+            self.memory.clear_banks()
+            self.memory.process_loads()
             if self.toptree:
                 for i, queue in enumerate(self.local_subtree_queues):
                     if len(queue) == self.subtree_queue_size:
@@ -139,6 +145,10 @@ class Simulator:
                 self.active_queries.extend(queue)
                 self.query_queues[0].extend(queue)
             self.toptree = False
+            self.run_sim()
+        else:
+            self.active_queries.extend(self.subtree_queries[self.current_subtree])
+            self.memory.load()
             self.run_sim()
 
     def flush_queues(self, index, queue):

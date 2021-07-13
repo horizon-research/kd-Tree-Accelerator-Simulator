@@ -10,8 +10,11 @@ WRITE = 1
 
 POINT = 0
 NODE = 1
-STACK = 2
-END = 3
+TOPTREE_POINT = 3
+TOPTREE_NODE = 4
+QUERY = 3
+STACK = 5
+
 X = 0
 Y = 4
 Z = 8
@@ -283,10 +286,10 @@ class KD_Tree:
                 self.insert(subtree_num)
                 self.knn_rec(query, current_best, k, tree, level)
                 return
-            self.access(READ, NODE, self.toptree_node_indices[tree], 0)
+            self.access(READ, TOPTREE_NODE, self.toptree_node_indices[tree], 0)
 
             #RP
-            self.access(READ, POINT, self.toptree_point_indices[tree.p], 0)
+            self.access(READ, TOPTREE_POINT, self.toptree_point_indices[tree.p], 0)
 
             #CD
             splitting_plane = level % self.num_dimensions

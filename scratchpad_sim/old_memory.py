@@ -1,5 +1,3 @@
-
-
 import numpy as np
 import queue
 READ = 0
@@ -7,11 +5,8 @@ WRITE = 1
 
 POINT = 0
 NODE = 1
-TOPTREE_POINT = 2
-TOPTREE_NODE = 3
-QUERY = 4
-STACK = 5
-
+STACK = 2
+END = 3
 X = 0
 Y = 4
 Z = 8
@@ -19,39 +14,26 @@ Z = 8
 P = 0
 LEFT = 8
 RIGHT = 16
-LOAD_CYCLES = 10
+
 #Constants which make trace writes more readable
-data_sizes = [16, 24, 40, 24]
+data_sizes = [16, 24, 40]
 
 class Memory:
-    def __init__(self, split, duplicated, scratchpads,  dram):
-        #self.scratchpads = scratchpads
-        
+    def __init__(self, scratchpads, dram):
         self.scratchpads = scratchpads
-        self.num_scratchpads = len(scratchpads)
-        self.active = [0, 0, 0, 0]
-        self.ready = [True, True, True, True, True, True]
-        self.processing_loads = []
-        if duplicated:
-            for spad in scratchpads:
-                self.scratchpads.append(spad.copy)
-        
         self.split = len(self.scratchpads) > 1
         self.DRAM = dram
     def calculate_address_space(self, sim):
         #Pointers in memory to start of scratchpad sections are calculated
         self.memory_ptrs[NODE] = data_sizes[POINT] * (self.num_nodes + 1)
         self.memory_ptrs[STACK] =self.memory_ptrs[NODE] + (data_sizes[NODE] *self.num_nodes)
-        
+        self.memory_ptrs[END] =self.memory_ptrs[STACK] + (data_sizes[STACK] * self.tree_depth)
     
     #Computes address for given address based on data type, data index, and offset, and writes it to the trace in a tuple
     
     def read(self, access_type, address):
         if self.split:
-                active_scratchpad = self.active[access_type]
-                if active_scratchpad == -1:
-                    return True
-                scratchpad = self.scratchpads[access_type + (self.num_scratchpads * active_scratchpad)]
+                scratchpad = self.scratchpads[access_type]
         else:
             scratchpad = self.scratchpads[0]
         return scratchpad.read(address)
@@ -61,22 +43,7 @@ class Memory:
         if not self.split:
             address += self.memory_ptrs[data_type]
         return address
-    def load(self, data_type):
-        scratchpad = 0 if self.active[data_type] == 1 else 0
-        scratchpad_num = scratchpad * self.num_scratchpads + data_type
-        self.processing_loads.append((scratchpad_num, scratchpad, LOAD_CYCLES))
-    def clear_banks(self):
-        for spad in self.scratchpads:
-            spad.clear_banks()
-    def process_loads(self):
-        if self.processing_loads:
-            for load in self.processing_loads:
-                if load[2] == 0:
-                    self.ready[load[0]] = True
-                    self.active[load[1]] = load[0]
-                else:
-                    load[2] -= 1
-
+           
 #Represents scratchpad architecture
 class Scratchpad:
     
@@ -85,7 +52,7 @@ class Scratchpad:
         self.linesize = 32
         self.num_banks = banks_in
         self.size = size_in
-        self.ready = False
+    
         #Number of bits needed to represent bank and offset are calculated
         self.offset_bits = int(np.log2(self.linesize))
         self.bank_bits = int(np.log2(self.num_banks))
@@ -134,8 +101,7 @@ class Scratchpad:
         for i in range(self.num_banks):
             self.bank_reads[i] = None
 
-    def copy(self):
-        return Scratchpad(self.size, self.num_banks)
+
 class DRAM:
     def __init__(self, size):
         self.size = 0
