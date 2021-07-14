@@ -13,12 +13,11 @@ from time import sleep
     
 #Represents high level simulator, contains PEs, as well as statistics on the current simulation
 class Simulator:
-    def __init__(self, kd_tree_in, queries_in, scratchpads, num_PEs, pipelined, merged_queues, ideal):
+    def __init__(self, kd_tree_in, queries_in, memory, num_PEs, pipelined, merged_queues, ideal):
         #Scratchpad setup
-        self.split = False
-        self.memory = Memory(True, scratchpads, None)
-        if len(scratchpads) > 1:
-            self.split = True
+        self.memory = memory
+        self.split = memory.split
+        
 
         self.kd_tree = kd_tree_in
         self.queries = queries_in
@@ -62,7 +61,7 @@ class Simulator:
         #Statistics for simulations
         self.num_conflicts = 0
         self.stalled_cycles = 0
-        self.access_nums = [0, 0, 0]
+        self.access_nums = [0, 0, 0, 0, 0, 0]
         self.cycles = 0
         self.memory.load(0)
         self.memory.load(1)
@@ -141,15 +140,22 @@ class Simulator:
             for i, queue in enumerate(self.local_subtree_queues):
                 self.flush_queues(i, queue)
             
-            for queue in reversed(self.subtree_queries):
-                self.active_queries.extend(queue)
-                self.query_queues[0].extend(queue)
+            #for queue in reversed(self.subtree_queries):
+                #self.active_queries.extend(queue)
+            self.active_queries.extend(self.subtree_queries[self.current_subtree])
+            self.query_queues[0].extend(self.subtree_queries[self.current_subtree])
+            self.memory.load(2)   
+            self.memory.load(3)   
             self.toptree = False
+            self.current_subtree += 1
             self.run_sim()
         else:
-            self.active_queries.extend(self.subtree_queries[self.current_subtree])
-            self.memory.load()
-            self.run_sim()
+            if self.current_subtree < self.num_subtrees:
+                self.active_queries.extend(self.subtree_queries[self.current_subtree])
+                self.query_queues[0].extend(self.subtree_queries[self.current_subtree])
+                self.memory.load(self.current_subtree)
+                self.current_subtree += 1
+                self.run_sim()
 
     def flush_queues(self, index, queue):
         self.subtree_queries[index].extend(queue)
@@ -287,14 +293,16 @@ def configurate_simulator(config):
         num_banks = int(tokens[8])
         scratchpads.append(Scratchpad(size, num_banks))
     elif tokens[6] == "SPLIT":
+        kd_tree.split = True
         for i in range(4):
             size = int(tokens[7 + (i * 2)])
             num_banks = int(tokens[8 + (i * 2)])
             scratchpads.append(Scratchpad(size, num_banks))
     #Simulator is created and ran
-    
-    s = Simulator(kd_tree, queries, scratchpads, num_PEs, pipelined, merged, ideal)
-    s.kd_tree.calculate_address_space(s)
+    memory = Memory(True, scratchpads, None)
+    kd_tree.memory = memory
+    memory.calculate_address_space(kd_tree.subtree_size, kd_tree.toptree_size, kd_tree.tree_depth)
+    s = Simulator(kd_tree, queries, memory, num_PEs, pipelined, merged, ideal)
     return (s, tokens[0], tokens[1])
 
    

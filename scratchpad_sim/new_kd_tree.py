@@ -46,6 +46,7 @@ class KD_Tree:
         self.toptree_node_indices = {}
         self.toptree_point_indices = {}
 
+        
         self.point_indices = {}
         self.query_trace = None
         self.split = False
@@ -62,13 +63,11 @@ class KD_Tree:
        
         self.assign_toptree(self.root, 0, self.toptree_levels)
         self.tree_depth = self.depth(self.root, 0)
+        self.subtree_size = (2 ** (self.tree_depth - self.toptree_levels) - 1)
+        self.toptree_size = (2 ** self.toptree_levels) - 1
         #self.print_tree()
 
-    def calculate_address_space(self, sim):
-        #Pointers in memory to start of scratchpad sections are calculated
-        self.memory_ptrs[NODE] = data_sizes[POINT] * (self.num_nodes + 1)
-        self.memory_ptrs[STACK] =self.memory_ptrs[NODE] + (data_sizes[NODE] *self.num_nodes)
-        self.memory_ptrs[END] =self.memory_ptrs[STACK] + (data_sizes[STACK] * self.tree_depth)
+    
 
     #Recursivley builds tree by selecting median points from each dimension
     def build_tree(self, points, lo, hi, level):
@@ -241,7 +240,7 @@ class KD_Tree:
 
     #Computes address for given address based on data type, data index, and offset, and writes it to the trace in a tuple
     def access(self, access_type, data_type, index, offset):
-        address = (data_sizes[data_type] * index) + offset
+        address = self.memory.address(data_type, index, offset)
         if not self.split:
             address += self.memory_ptrs[data_type]
         self.query_trace.add(("R", data_type, address))

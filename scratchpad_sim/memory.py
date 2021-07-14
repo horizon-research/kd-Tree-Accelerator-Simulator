@@ -26,23 +26,28 @@ data_sizes = [16, 24, 16, 24, 40, 24]
 class Memory:
     def __init__(self,  duplicated, scratchpads,  dram):
         #self.scratchpads = scratchpads
-        
+        self.memory_ptrs = [0, 0, 0, 0, 0, 0]
         self.scratchpads = scratchpads
-        self.num_scratchpads = len(scratchpads)
-        self.active = [0, 0, 0, 0]
+        self.active = [0, 0, 0, 0, 0, 0]
         self.ready = [True, True, True, True, True, True]
         self.processing_loads = []
         if duplicated:
             for i in range(len(scratchpads)):
                 spad = scratchpads[i]
                 self.scratchpads.append(deepcopy(spad))
+        self.num_scratchpads = len(scratchpads)
         
         self.split = len(self.scratchpads) > 1
         self.DRAM = dram
-    def calculate_address_space(self, sim):
+    def calculate_address_space(self, subtree_size, toptree_size, depth):
         #Pointers in memory to start of scratchpad sections are calculated
-        self.memory_ptrs[NODE] = data_sizes[POINT] * (self.num_nodes + 1)
-        self.memory_ptrs[STACK] =self.memory_ptrs[NODE] + (data_sizes[NODE] *self.num_nodes)
+        self.memory_ptrs[POINT] = 0
+        self.memory_ptrs[NODE] = data_sizes[POINT] * subtree_size
+        self.memory_ptrs[TOPTREE_POINT] =self.memory_ptrs[NODE] + (data_sizes[NODE] *  subtree_size)
+        self.memory_ptrs[TOPTREE_NODE] =self.memory_ptrs[TOPTREE_POINT] + (data_sizes[TOPTREE_POINT] * toptree_size)
+        self.memory_ptrs[QUERY] =self.memory_ptrs[TOPTREE_NODE] + (data_sizes[NODE] * toptree_size)
+        self.memory_ptrs[STACK] =self.memory_ptrs[QUERY] + (data_sizes[STACK] * depth)
+
         
     
     #Computes address for given address based on data type, data index, and offset, and writes it to the trace in a tuple
@@ -51,8 +56,9 @@ class Memory:
         if self.split:
                 active_scratchpad = self.active[access_type]
                 if active_scratchpad == -1:
+                    print("*********************")
                     return True
-                scratchpad = self.scratchpads[access_type + (self.num_scratchpads * active_scratchpad)]
+                scratchpad = self.scratchpads[active_scratchpad]
         else:
             scratchpad = self.scratchpads[0]
         return scratchpad.read(address)
@@ -65,7 +71,7 @@ class Memory:
     def load(self, data_type):
         scratchpad = 0 if self.active[data_type] == 1 else 0
         scratchpad_num = scratchpad * self.num_scratchpads + data_type
-        self.processing_loads.append((scratchpad_num, scratchpad, LOAD_CYCLES))
+        self.processing_loads.append([scratchpad_num, data_type, LOAD_CYCLES])
     def clear_banks(self):
         for spad in self.scratchpads:
             spad.clear_banks()
