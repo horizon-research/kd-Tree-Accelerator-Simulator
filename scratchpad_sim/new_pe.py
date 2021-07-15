@@ -36,7 +36,7 @@ class PE:
 
                         
                 
-            
+    #Determines if the pipeline is ready for a new query
     def pipeline_open(self, pipelined):
         if pipelined:
             return self.pipeline[0] is None

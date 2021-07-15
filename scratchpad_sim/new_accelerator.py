@@ -137,12 +137,12 @@ class Simulator:
                         self.flush_queues(i, queue)
             self.cycles += 1
 
+        #Once the toptree is finished, subtree processing begins
         if self.toptree:
             for i, queue in enumerate(self.local_subtree_queues):
                 self.flush_queues(i, queue)
             
-            #for queue in reversed(self.subtree_queries):
-                #self.active_queries.extend(queue)
+            
             self.active_queries.extend(self.subtree_queries[self.current_subtree])
             self.query_queues[0].extend(self.subtree_queries[self.current_subtree])
             self.memory.load(2)   
@@ -151,6 +151,7 @@ class Simulator:
             self.current_subtree += 1
             self.run_sim()
         else:
+            #The next subtree to be processed is loaded into memory
             if self.current_subtree < self.num_subtrees:
                 self.active_queries.extend(self.subtree_queries[self.current_subtree])
                 self.query_queues[0].extend(self.subtree_queries[self.current_subtree])
@@ -159,6 +160,7 @@ class Simulator:
                 self.current_subtree += 1
                 self.run_sim()
 
+    #The temporary subtree queue is written to memory
     def flush_queues(self, index, queue):
         self.subtree_queries[index].extend(queue)
         queue.clear()
