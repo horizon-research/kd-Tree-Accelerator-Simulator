@@ -63,6 +63,7 @@ class Simulator:
         self.stalled_cycles = 0
         self.access_nums = [0, 0, 0, 0, 0, 0]
         self.cycles = 0
+        #Initally loads data to memory
         self.memory.load(0)
         self.memory.load(1)
         self.memory.load(2)
@@ -93,9 +94,9 @@ class Simulator:
         results.append(self.ideal)
         results.append(self.num_queries)
         results.append(self.nodes_visited)
-        results.append(self.access_nums[0])
-        results.append(self.access_nums[1])
-        results.append(self.access_nums[2])
+        results.append(self.access_nums[0] + self.access_nums[2])
+        results.append(self.access_nums[1] + self.access_nums[3])
+        results.append(self.access_nums[5])
         results.append(self.num_conflicts)
         results.append(self.stages_stalled)
 
@@ -199,7 +200,7 @@ class Simulator:
                 ideal = self.kd_tree.knn_ideal(p, k)
                 sum = 0
                 for p1, p2 in zip(actual, ideal):
-                    sum += (p1[0] - p2[0])
+                    sum += (p2[0] - p1[0])
                 self.inaccuracy += sum
                 
                 
@@ -275,7 +276,7 @@ def configurate_simulator(config):
     
     scratchpads = []
     tokens = config.split()
-    kd_tree = KD_Tree("../kdTree_Inputs/" + tokens[0])
+    kd_tree = KD_Tree("../kdTree_Inputs/" + tokens[0], -1)
     queries = open("../Query_Inputs/" + tokens[1]).readlines()
     #Pipelining options
     if tokens[2] == "PIPELINED":

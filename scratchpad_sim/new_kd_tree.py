@@ -11,9 +11,9 @@ WRITE = 1
 
 POINT = 0
 NODE = 1
-TOPTREE_POINT = 3
-TOPTREE_NODE = 4
-QUERY = 3
+TOPTREE_POINT = 2
+TOPTREE_NODE = 3
+QUERY = 4
 STACK = 5
 
 X = 0
@@ -28,7 +28,7 @@ RIGHT = 16
 class KD_Tree:  
     
     #Constructs kd-Tree and initializes tracing information
-    def __init__(self, data_in):
+    def __init__(self, data_in, approximation):
         self.num_dimensions = 3
         self.num_toptree_nodes = 0
         self.num_nodes = 0
@@ -60,30 +60,21 @@ class KD_Tree:
         #Well balanced tree created from points
         self.root = self.build_tree(self.points, 0, len(self.points) - 1, 0)
         self.toptree_levels = 4
-       
+        self.approximation = approximation
+        self.terminate_distance = -5
         self.assign_toptree(self.root, 0, self.toptree_levels)
         self.tree_depth = self.depth(self.root, 0)
         self.subtree_size = (2 ** (self.tree_depth - self.toptree_levels) - 1)
         self.toptree_size = (2 ** self.toptree_levels) - 1
         #self.print_tree()
-        
+    
     def size(self, tree):
         if tree:
             return 1 + self.size(tree.right) + self.size(tree.left)
         else:
             return 0
-
     
-    def exhaustive_search(self, query, k):
-        current_best = []
-        for p in self.points:
-            distance = -p.distance(query)
-            if len(current_best) == k:
-                if current_best[0][0] > distance:
-                    heapq.heapreplace(current_best, (distance, p))
-            else:
-                heapq.heappush(current_best, (distance, p))
-        return current_best
+
     #Recursivley builds tree by selecting median points from each dimension
     def build_tree(self, points, lo, hi, level):
         if lo <= hi:
@@ -105,7 +96,7 @@ class KD_Tree:
             return n
         else:
             return None
-    
+    #Assigns nodes in the toptree to indices
     def assign_toptree(self, tree, level, top_level):
         if level == top_level:
             self.num_nodes = 0
@@ -119,6 +110,8 @@ class KD_Tree:
 
             self.assign_toptree(tree.left, level + 1, top_level)
             self.assign_toptree(tree.right, level + 1, top_level)
+
+    #Assigns nodes in the given subtree to indices
     def assign_subtree(self, tree):
         if tree:
             self.node_indices[tree] = self.num_nodes
@@ -127,7 +120,7 @@ class KD_Tree:
             self.assign_subtree(tree.left)
             self.assign_subtree(tree.right)
 
-
+    #Finds depth of tree
     def depth(self, tree, level):
         if tree:
             left_depth = self.depth(tree.left, level + 1)
@@ -175,7 +168,7 @@ class KD_Tree:
         self.access(READ, STACK, call, 0) #Query
         
         self.computation(1)
-        if tree:
+        if tree and not (self.approximation == 1 and current_best[0][0] > self.terminate_distance):
             #RN
             self.access(READ, NODE, self.node_indices[tree], 0)
 
@@ -217,19 +210,19 @@ class KD_Tree:
             if  query_val < current_val:
                 self.stack.append(call + 1)
                 self.access(WRITE, STACK, call + 1, 0)
-
                 self.computation(1)
                 self.knn_rec(query, current_best, k, tree.left, level + 1)
 
                 #BT
                 #If the current best distance + the target value is greater than the current value,
                 #it is possible that the closest point could be contained in right subtree, so it is searched as well
-                self.computation(6)
-                if (query_val + current_best[0][0] > current_val or k > len(current_best)):
-                    self.stack.append(call + 1)
-                    self.access(WRITE, STACK, call + 1, 0)
-                    self.backtrack()
-                    self.knn_rec(query, current_best, k, tree.right, level + 1)
+                if self.approximation != 0:
+                    self.computation(6)
+                    if (query_val + current_best[0][0] > current_val or k > len(current_best)):
+                        self.stack.append(call + 1)
+                        self.access(WRITE, STACK, call + 1, 0)
+                        self.backtrack()
+                        self.knn_rec(query, current_best, k, tree.right, level + 1)
                 
             #If target value is greater than current, take right subtree
             else:
@@ -241,12 +234,13 @@ class KD_Tree:
                 #BT
                 #If the target value - the current best distance is less than than the current value,
                 #it is possible that the closest point could be contained in the left subtree, so it is searched as well
-                self.computation(6)
-                if (query_val - current_best[0][0] < current_val or k > len(current_best)):
-                    self.stack.append(call + 1)
-                    self.access(WRITE, STACK, call + 1, 0)
-                    self.backtrack()
-                    self.knn_rec(query, current_best, k, tree.left, level + 1)
+                if self.approximation != 0:
+                    self.computation(6)
+                    if (query_val - current_best[0][0] < current_val or k > len(current_best)):
+                        self.stack.append(call + 1)
+                        self.access(WRITE, STACK, call + 1, 0)
+                        self.backtrack()
+                        self.knn_rec(query, current_best, k, tree.left, level + 1)
         else:
             self.backtrack()
         self.access(READ, STACK, self.stack.pop(), 32)
