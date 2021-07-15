@@ -56,7 +56,6 @@ class Memory:
         if self.split:
                 active_scratchpad = self.active[access_type]
                 if active_scratchpad == -1:
-                    print("*********************")
                     return True
                 scratchpad = self.scratchpads[active_scratchpad]
         else:
@@ -121,6 +120,7 @@ class Scratchpad:
     #Read command is processed, determines whether there is a bank conflict for the given read, and returns true if the read was processed with no conflict
     def read(self, address):
         if address > self.size:
+            print(self.size)
             print("Read out of bounds")
             return False
 

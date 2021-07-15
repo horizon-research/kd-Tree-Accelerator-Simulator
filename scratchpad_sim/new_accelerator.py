@@ -35,7 +35,7 @@ class Simulator:
         self.pipeline_size = 34
         self.backtrack_pipeline_size = 8
         self.ideal = ideal
-        
+        self.inaccuracy = 0
         #Creates appropriate number of query queues
         self.merged_queues = merged_queues
         self.query_queues = []
@@ -153,7 +153,8 @@ class Simulator:
             if self.current_subtree < self.num_subtrees:
                 self.active_queries.extend(self.subtree_queries[self.current_subtree])
                 self.query_queues[0].extend(self.subtree_queries[self.current_subtree])
-                self.memory.load(self.current_subtree)
+                self.memory.load(2)   
+                self.memory.load(3) 
                 self.current_subtree += 1
                 self.run_sim()
 
@@ -175,8 +176,6 @@ class Simulator:
         #If there are queries in the queue, one is taken out and assigned to the PE
         if query_queue:
             q = query_queue.pop()
-            if q in query_queue:
-                print("^^^^^^^^^^^^^^^^^^")
             if not q.backtrack:
                 self.nodes_visited += 1
             pe.pipeline[0] = q
@@ -195,8 +194,13 @@ class Simulator:
             if tokens[0] == "KNN":
                 p = Point(tokens[1:4])
                 k = int(tokens[4])
-                if self.toptree:
-                    self.kd_tree.knn_top(p, k)
+                #if self.toptree:
+                actual = self.kd_tree.knn_top(p, k)
+                ideal = self.kd_tree.knn_ideal(p, k)
+                sum = 0
+                for p1, p2 in zip(actual, ideal):
+                    sum += (p1[0] - p2[0])
+                self.inaccuracy += sum
                 
                 
             else:
@@ -260,6 +264,7 @@ def main():
         percent = round(((i - start) / (end - start)) * 100)
         print("\rSimulating " + sys.argv[2] + ": " + str(percent) + "%")
         s.run_sim()
+        print(s.inaccuracy)
         results = s.print_results(sim_data[1], sim_data[2])
         writer.writerow(results)
         log.flush()

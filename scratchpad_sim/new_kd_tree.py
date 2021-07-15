@@ -36,8 +36,8 @@ class KD_Tree:
         self.root = None
         file = open(data_in)
         lines = file.readlines()
-        points = []
-
+        self.points = []
+        perfect_distances = []
         #Data indices saved for address calculation
         self.memory = None
         self.stack = []
@@ -55,20 +55,35 @@ class KD_Tree:
         for line in lines:
             tokens = line.split()
             p = Point([float(tokens[0]), float(tokens[1]), float(tokens[2])])
-            points.append(p)
+            self.points.append(p)
         self.memory_ptrs = [0, 0, 0, 0]
         #Well balanced tree created from points
-        self.root = self.build_tree(points, 0, len(points) - 1, 0)
-        self.toptree_levels = 2
+        self.root = self.build_tree(self.points, 0, len(self.points) - 1, 0)
+        self.toptree_levels = 4
        
         self.assign_toptree(self.root, 0, self.toptree_levels)
         self.tree_depth = self.depth(self.root, 0)
         self.subtree_size = (2 ** (self.tree_depth - self.toptree_levels) - 1)
         self.toptree_size = (2 ** self.toptree_levels) - 1
         #self.print_tree()
+        
+    def size(self, tree):
+        if tree:
+            return 1 + self.size(tree.right) + self.size(tree.left)
+        else:
+            return 0
 
     
-
+    def exhaustive_search(self, query, k):
+        current_best = []
+        for p in self.points:
+            distance = -p.distance(query)
+            if len(current_best) == k:
+                if current_best[0][0] > distance:
+                    heapq.heapreplace(current_best, (distance, p))
+            else:
+                heapq.heappush(current_best, (distance, p))
+        return current_best
     #Recursivley builds tree by selecting median points from each dimension
     def build_tree(self, points, lo, hi, level):
         if lo <= hi:
@@ -343,6 +358,59 @@ class KD_Tree:
                 #it is possible that the closest point could be contained in the left subtree, so it is searched as well
                 
         
+         #k nearest-neighbour search
+    def knn_ideal(self, query, k):
+        #Stack is initialized to track recursive calls
+        current_best = []
+        #Recursive function modifies current best, when finished, it will contain the k nearest points in the tree, and their distances from the query point
+        self.knn_ideal_rec(query, current_best, k, self.root, 0)
+        return current_best
+
+    #Traverses down path as if the target point were being inserted in the tree, 
+    #if any point encountered along the way is closer than the current closest point,
+    #that point is then set to be closest point
+    def knn_ideal_rec(self, query, current_best, k, tree, level):
+        if tree:
+            splitting_plane = level % self.num_dimensions
+
+            #Values found for current point and target point
+            query_val = query.dim_value(splitting_plane)
+            current_val = tree.p.dim_value(splitting_plane)
+
+            #Current point's distance to query found
+            
+            #Distance stored as negative to convert heap to max heap
+            distance = -query.distance(tree.p)
+            current = (distance, tree.p)
+
+            #If there are already k points in heap, add current point only if its distance is less than the farthest away point in heap
+            if len(current_best) == k:
+                if distance > current_best[0][0]:
+                    heapq.heapreplace(current_best, current)
+            #Otherwise, add
+            else:
+                heapq.heappush(current_best, current)
+            if tree.right == None and tree.left == None:
+                return
+
+            #If target value is less than current, take left subtree
+            if  query_val < current_val:
+
+                self.knn_ideal_rec(query, current_best, k, tree.left, level + 1)
+
+                #BT
+                #If the current best distance + the target value is greater than the current value,
+                #it is possible that the closest point could be contained in right subtree, so it is searched as well
+                if (query_val + current_best[0][0] > current_val or k > len(current_best)):
+                    self.knn_ideal_rec(query, current_best, k, tree.right, level + 1)
+                
+            #If target value is greater than current, take right subtree
+            else:
+                self.knn_ideal_rec(query, current_best, k, tree.right, level + 1)
+                #If the target value - the current best distance is less than than the current value,
+                #it is possible that the closest point could be contained in the left subtree, so it is searched as well
+                if (query_val - current_best[0][0] < current_val or k > len(current_best)):
+                    self.knn_ideal_rec(query, current_best, k, tree.left, level + 1)
         
 
 
