@@ -26,7 +26,7 @@ RIGHT = 16
 class KD_Tree:  
     
     #Constructs kd-Tree and initializes tracing information
-    def __init__(self, data_in, approximation):
+    def __init__(self, data_in, num_levels, approximation):
         self.num_dimensions = 3
         self.num_toptree_nodes = 0
         self.num_nodes = 0
@@ -54,7 +54,7 @@ class KD_Tree:
         self.memory_ptrs = [0, 0, 0, 0]
         #Well balanced tree created from points
         self.root = self.build_tree(self.points, 0, len(self.points) - 1, 0)
-        self.toptree_levels = 4
+        self.toptree_levels = num_levels
         self.approximation = approximation
         self.terminate_distance = -5
         self.assign_toptree(self.root, 0, self.toptree_levels)
@@ -596,7 +596,8 @@ class Node:
             self.right = None
             self.p = p
 
-
+'''
 tree = Bucket_KD_Tree("../kdTree_Inputs/test", 3)
 tree.memory = Memory()
 tree.knn(Point([0,0,0]), 2)
+'''

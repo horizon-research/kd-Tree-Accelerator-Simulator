@@ -112,15 +112,15 @@ class Simulator:
         results.append(self.cycles)
         avg = self.cycles / self.nodes_visited
         results.append(avg)
-        
+        results.append(self.kd_tree.toptree_levels)
         return results
 
     #Starts processing of queries, managing PEs to ensure they always have an assigned query if possible
     def run_sim(self):
         #As long as at least one PE is processing instructions, the simulation continues
-        print(self.toptree)
+        #print(self.toptree)
         while len(self.active_queries) > 0:
-            print(len(self.active_queries))
+            #print(len(self.active_queries))
             for i in range(self.num_PEs): 
                 pe = self.PEs[i]
                 pe.manage_pipeline(self)
@@ -141,24 +141,33 @@ class Simulator:
         if self.toptree:
             for i, queue in enumerate(self.local_subtree_queues):
                 self.flush_queues(i, queue)
-            
-            
+            self.toptree = False
+            self.process_subtrees()
+            '''
             self.active_queries.extend(self.subtree_queries[self.current_subtree])
             self.query_queues[0].extend(self.subtree_queries[self.current_subtree])
             self.memory.load(2)   
             self.memory.load(3)   
             self.toptree = False
             self.current_subtree += 1
-            self.run_sim()
-        else:
-            #The next subtree to be processed is loaded into memory
+            self.run_sim()'''
+        #else:
+            '''#The next subtree to be processed is loaded into memory
             if self.current_subtree < self.num_subtrees:
                 self.active_queries.extend(self.subtree_queries[self.current_subtree])
                 self.query_queues[0].extend(self.subtree_queries[self.current_subtree])
                 self.memory.load(2)   
                 self.memory.load(3) 
                 self.current_subtree += 1
-                self.run_sim()
+                self.run_sim()'''
+            
+    def process_subtrees(self):
+        for i in range(self.num_subtrees):
+            self.active_queries.extend(self.subtree_queries[i])
+            self.query_queues[0].extend(self.subtree_queries[i])
+            self.memory.load(2)   
+            self.memory.load(3) 
+            self.run_sim()
 
     #The temporary subtree queue is written to memory
     def flush_queues(self, index, queue):
@@ -234,7 +243,7 @@ class Simulator:
         elif query.finished():
             self.active_queries.remove(query)
             query.stalled = False
-            print(f'{query} $$$$$$$$$$$$$$$$$$$')
+            #print(f'{query} $$$$$$$$$$$$$$$$$$$')
             return True
         elif ((query.backtrack and stage == self.backtrack_pipeline_size - 1) or stage == self.pipeline_size - 1) and not query.stalled:
             if self.merged_queues:
@@ -267,7 +276,7 @@ def main():
         percent = round(((i - start) / (end - start)) * 100)
         print("\rSimulating " + sys.argv[2] + ": " + str(percent) + "%")
         s.run_sim()
-        print(s.inaccuracy)
+        #print(s.inaccuracy)
         results = s.print_results(sim_data[1], sim_data[2])
         writer.writerow(results)
         log.flush()
@@ -278,8 +287,7 @@ def configurate_simulator(config):
     
     scratchpads = []
     tokens = config.split()
-    kd_tree = KD_Tree("../kdTree_Inputs/" + tokens[0], -1)
-    queries = open("../Query_Inputs/" + tokens[1]).readlines()
+    split = False
     #Pipelining options
     if tokens[2] == "PIPELINED":
         pipelined = True
@@ -301,14 +309,20 @@ def configurate_simulator(config):
         num_banks = int(tokens[8])
         scratchpads.append(Scratchpad(size, num_banks))
     elif tokens[6] == "SPLIT":
-        kd_tree.split = True
+        split = True
         for i in range(3):
+            print(i)
             size = int(tokens[7 + (i * 2)])
+            print(size)
             num_banks = int(tokens[8 + (i * 2)])
             scratchpads.append(Scratchpad(size, num_banks))
+    num_levels = int(tokens[13])
+    kd_tree = KD_Tree("../kdTree_Inputs/" + tokens[0], num_levels, -1)
+    queries = open("../Query_Inputs/" + tokens[1]).readlines()
     #Simulator is created and ran
     memory = Memory(True, scratchpads, None)
     kd_tree.memory = memory
+    kd_tree.split = split
     memory.calculate_address_space(kd_tree.subtree_size, kd_tree.toptree_size, kd_tree.tree_depth)
     s = Simulator(kd_tree, queries, memory, num_PEs, pipelined, merged, ideal)
     return (s, tokens[0], tokens[1])
