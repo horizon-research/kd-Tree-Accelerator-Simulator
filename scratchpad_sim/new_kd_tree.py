@@ -4,17 +4,14 @@ from point import Point
 import time
 from collections import deque
 #Constants which make trace writes more readable
-data_sizes = [16, 24, 16, 24, 40, 24]
+data_sizes = [40, 40, 64]
 
 READ = 0
 WRITE = 1
 
 POINT = 0
-NODE = 1
-TOPTREE_POINT = 2
-TOPTREE_NODE = 3
-QUERY = 4
-STACK = 5
+TOPTREE_POINT = 1
+QUERY = 2
 
 X = 0
 Y = 4
@@ -37,13 +34,10 @@ class KD_Tree:
         file = open(data_in)
         lines = file.readlines()
         self.points = []
-        perfect_distances = []
         #Data indices saved for address calculation
         self.memory = None
         self.stack = []
         self.subtree_roots = {}
-        self.node_indices = {}
-        self.toptree_node_indices = {}
         self.toptree_point_indices = {}
 
         
@@ -104,7 +98,6 @@ class KD_Tree:
             self.assign_subtree(tree)
             self.num_subtrees += 1
         else:
-            self.toptree_node_indices[tree] = self.num_toptree_nodes
             self.toptree_point_indices[tree.p] = self.num_toptree_nodes
             self.num_toptree_nodes += 1
 
@@ -114,7 +107,6 @@ class KD_Tree:
     #Assigns nodes in the given subtree to indices
     def assign_subtree(self, tree):
         if tree:
-            self.node_indices[tree] = self.num_nodes
             self.point_indices[tree.p] = self.num_nodes
             self.num_nodes += 1
             self.assign_subtree(tree.left)
@@ -165,12 +157,10 @@ class KD_Tree:
         
         call = self.stack[-1]
         #RS
-        self.access(READ, STACK, call, 0) #Query
+        self.access(READ, QUERY, call, 0) 
         
         self.computation(1)
         if tree and not (self.approximation == 1 and current_best[0][0] > self.terminate_distance):
-            #RN
-            self.access(READ, NODE, self.node_indices[tree], 0)
 
             #RP
             self.access(READ, POINT, self.point_indices[tree.p], 0)
@@ -200,7 +190,7 @@ class KD_Tree:
             self.computation(2)
             if tree.right == None and tree.left == None:
                 self.backtrack()
-                self.access(READ, STACK, self.stack.pop(), 32)
+                self.access(READ, QUERY, self.stack.pop(), 32)
                 
                 return
 
@@ -209,7 +199,7 @@ class KD_Tree:
             self.computation(2)
             if  query_val < current_val:
                 self.stack.append(call + 1)
-                self.access(WRITE, STACK, call + 1, 0)
+                self.access(WRITE, QUERY, call + 1, 0)
                 self.computation(1)
                 self.knn_rec(query, current_best, k, tree.left, level + 1)
 
@@ -220,14 +210,14 @@ class KD_Tree:
                     self.computation(6)
                     if (query_val + current_best[0][0] > current_val or k > len(current_best)):
                         self.stack.append(call + 1)
-                        self.access(WRITE, STACK, call + 1, 0)
+                        self.access(WRITE, QUERY, call + 1, 0)
                         self.backtrack()
                         self.knn_rec(query, current_best, k, tree.right, level + 1)
                 
             #If target value is greater than current, take right subtree
             else:
                 self.stack.append(call + 1)
-                self.access(WRITE, STACK, call + 1, 0)
+                self.access(WRITE, QUERY, call + 1, 0)
                 self.computation(1)
                 self.knn_rec(query, current_best, k, tree.right, level + 1)
 
@@ -238,12 +228,12 @@ class KD_Tree:
                     self.computation(6)
                     if (query_val - current_best[0][0] < current_val or k > len(current_best)):
                         self.stack.append(call + 1)
-                        self.access(WRITE, STACK, call + 1, 0)
+                        self.access(WRITE, QUERY, call + 1, 0)
                         self.backtrack()
                         self.knn_rec(query, current_best, k, tree.left, level + 1)
         else:
             self.backtrack()
-        self.access(READ, STACK, self.stack.pop(), 32)
+        self.access(READ, QUERY, self.stack.pop(), 32)
         
 
 
@@ -284,18 +274,16 @@ class KD_Tree:
     def knn_top_rec(self, query, current_best, k, tree, level):
         call = self.stack[-1]
         #RS
-        self.access(READ, STACK, call, 0) #Query
+        self.access(READ, QUERY, call, 0) #Query
         #print(tree.p)
         #print(query)
         self.computation(1)
         if tree:
-            #RN
             if level == self.toptree_levels:
                 subtree_num = self.subtree_roots[tree]
                 self.insert(subtree_num)
                 self.knn_rec(query, current_best, k, tree, level)
                 return
-            self.access(READ, TOPTREE_NODE, self.toptree_node_indices[tree], 0)
 
             #RP
             self.access(READ, TOPTREE_POINT, self.toptree_point_indices[tree.p], 0)
@@ -330,7 +318,7 @@ class KD_Tree:
             self.computation(2)
             if  query_val < current_val:
                 self.stack.append(call + 1)
-                self.access(WRITE, STACK, call + 1, 0)
+                self.access(WRITE, QUERY, call + 1, 0)
 
                 self.computation(1)
                 self.knn_top_rec(query, current_best, k, tree.left, level + 1)
@@ -343,7 +331,7 @@ class KD_Tree:
             #If target value is greater than current, take right subtree
             else:
                 self.stack.append(call + 1)
-                self.access(WRITE, STACK, call + 1, 0)
+                self.access(WRITE, QUERY, call + 1, 0)
                 self.computation(1)
                 self.knn_top_rec(query, current_best, k, tree.right, level + 1)
 
@@ -406,6 +394,45 @@ class KD_Tree:
                 if (query_val - current_best[0][0] < current_val or k > len(current_best)):
                     self.knn_ideal_rec(query, current_best, k, tree.left, level + 1)
         
+
+    class Bucket_KD_Tree:
+        def __init__(self, data_in):
+            file = open(data_in)
+            lines = file.readlines()
+            points = []
+            self.buckets = {}
+            for line in file:
+                tokens = line.split()
+                p = Point(tokens)
+                points.append(p)
+        def build_toptree(self, points, lo, hi, level, max):
+            #Median for sublist is found
+            median = int((lo + hi) / 2)
+            #Dimension to sort on
+            dim = level % 3
+            #Sublist is sorted based on current dimension
+            points[lo:hi + 1] = sorted(points[lo:hi + 1], key=lambda p: p.values[dim])
+            #Median point is inserted into tree
+            p = points[median]
+            n = Node(p)
+            if level < max:
+                #Function called recursivley to all points to the left and right of the median in the sublist, sorting dimension is incremented
+                n.left = self.build_tree(points, lo, median - 1, level + 1)
+                n.right = self.build_tree(points, median + 1, hi, level + 1)
+                return n
+            else:
+                self.buckets[n] = []
+                return n
+        def insert(self, tree, p, level):
+            if tree.right  ==  None and tree.left == None:
+                self.buckets[tree].append(p)
+            else:
+                dimension = level % 3
+                if tree.p.dim_value(dimension) > p.dim_value(dimension):
+                    self.insert(tree.left, p, level + 1)
+                else:
+                    self.insert(tree.right, p, level + 1)
+                    
 
 
 #Internal node class

@@ -6,11 +6,8 @@ READ = 0
 WRITE = 1
 
 POINT = 0
-NODE = 1
-TOPTREE_POINT = 2
-TOPTREE_NODE = 3
-QUERY = 4
-STACK = 5
+TOPTREE_POINT = 1
+QUERY = 2
 
 X = 0
 Y = 4
@@ -21,7 +18,7 @@ LEFT = 8
 RIGHT = 16
 LOAD_CYCLES = 10
 #Constants which make trace writes more readable
-data_sizes = [16, 24, 16, 24, 40, 24]
+data_sizes = [40, 40, 64]
 
 class Memory:
     def __init__(self,  duplicated, scratchpads,  dram):
@@ -42,11 +39,8 @@ class Memory:
     def calculate_address_space(self, subtree_size, toptree_size, depth):
         #Pointers in memory to start of scratchpad sections are calculated
         self.memory_ptrs[POINT] = 0
-        self.memory_ptrs[NODE] = data_sizes[POINT] * subtree_size
-        self.memory_ptrs[TOPTREE_POINT] =self.memory_ptrs[NODE] + (data_sizes[NODE] *  subtree_size)
-        self.memory_ptrs[TOPTREE_NODE] =self.memory_ptrs[TOPTREE_POINT] + (data_sizes[TOPTREE_POINT] * toptree_size)
-        self.memory_ptrs[QUERY] =self.memory_ptrs[TOPTREE_NODE] + (data_sizes[NODE] * toptree_size)
-        self.memory_ptrs[STACK] =self.memory_ptrs[QUERY] + (data_sizes[STACK] * depth)
+        self.memory_ptrs[TOPTREE_POINT] =self.memory_ptrs[POINT] + (data_sizes[POINT] *  subtree_size)
+        self.memory_ptrs[QUERY] =self.memory_ptrs[TOPTREE_POINT] + (data_sizes[TOPTREE_POINT] * toptree_size)
 
         
     

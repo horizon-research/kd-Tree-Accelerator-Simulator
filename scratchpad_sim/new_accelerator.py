@@ -302,7 +302,7 @@ def configurate_simulator(config):
         scratchpads.append(Scratchpad(size, num_banks))
     elif tokens[6] == "SPLIT":
         kd_tree.split = True
-        for i in range(4):
+        for i in range(3):
             size = int(tokens[7 + (i * 2)])
             num_banks = int(tokens[8 + (i * 2)])
             scratchpads.append(Scratchpad(size, num_banks))
