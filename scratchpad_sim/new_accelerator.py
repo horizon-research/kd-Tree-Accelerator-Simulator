@@ -60,9 +60,11 @@ class Simulator:
 
         #Statistics for simulations
         self.num_conflicts = 0
+        self.subtree_conflicts = 0
         self.stalled_cycles = 0
         self.access_nums = [0, 0, 0, 0, 0, 0]
         self.cycles = 0
+        self.subtree_cycles = 0
         #Initally loads data to memory
         self.memory.load(0)
         self.memory.load(1)
@@ -98,6 +100,8 @@ class Simulator:
         results.append(self.access_nums[1] + self.access_nums[3])
         results.append(self.access_nums[5])
         results.append(self.num_conflicts)
+        results.append(self.subtree_conflicts)
+        results.append(self.subtree_conflicts + self.num_conflicts)
         results.append(self.stages_stalled)
 
         percent = self.stages_stalled / (self.pipeline_size * self.num_PEs * self.cycles)
@@ -110,6 +114,10 @@ class Simulator:
                 max = pe.lines_processed
         results.append(sum)
         results.append(self.cycles)
+        results.append(self.subtree_cycles)
+        results.append(self.subtree_cycles + self.cycles)
+
+
         avg = self.cycles / self.nodes_visited
         results.append(avg)
         results.append(self.kd_tree.toptree_levels)
@@ -135,7 +143,10 @@ class Simulator:
                 for i, queue in enumerate(self.local_subtree_queues):
                     if len(queue) == self.subtree_queue_size:
                         self.flush_queues(i, queue)
-            self.cycles += 1
+            if self.toptree:
+                self.cycles += 1
+            else:
+                self.subtree_cycles += 1
 
         #Once the toptree is finished, subtree processing begins
         if self.toptree:
@@ -311,9 +322,7 @@ def configurate_simulator(config):
     elif tokens[6] == "SPLIT":
         split = True
         for i in range(3):
-            print(i)
             size = int(tokens[7 + (i * 2)])
-            print(size)
             num_banks = int(tokens[8 + (i * 2)])
             scratchpads.append(Scratchpad(size, num_banks))
     num_levels = int(tokens[13])

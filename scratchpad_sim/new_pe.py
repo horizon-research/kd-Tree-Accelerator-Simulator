@@ -67,7 +67,10 @@ class PE:
             #If true is returned there was a bank conflict
             
             if sim.memory.read(access_type, address):
-                sim.num_conflicts += 1
+                if sim.toptree:
+                    sim.num_conflicts += 1
+                else:
+                    sim.subtree_conflicts += 1
                 if not ideal:
                     query.stalled = True
             else:

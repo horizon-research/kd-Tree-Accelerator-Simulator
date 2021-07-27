@@ -73,7 +73,11 @@ class PE:
             else:
                 scratchpad = sim.scratchpads[0]
             if scratchpad.read(address):
-                sim.num_conflicts += 1
+                if sim.toptree:
+                    sim.num_conflicts += 1
+                else:
+                    print(44444)
+                    sim.subtree_conflicts += 1
                 if not ideal:
                     query.stalled = True
             else:
