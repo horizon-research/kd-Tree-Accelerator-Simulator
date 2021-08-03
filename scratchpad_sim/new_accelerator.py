@@ -28,6 +28,8 @@ class Simulator:
         self.query_index = 0
 
         self.stages_stalled = 0
+        self.toptree_stages_stalled = 0
+
         #PE setup
         self.num_PEs = num_PEs
         self.PEs = []
@@ -63,7 +65,7 @@ class Simulator:
         self.subtree_conflicts = 0
         self.stalled_cycles = 0
         self.access_nums = [0, 0, 0, 0, 0, 0]
-        self.cycles = 0
+        self.toptree_cycles = 0
         self.subtree_cycles = 0
         #Initally loads data to memory
         self.memory.load(0)
@@ -98,13 +100,15 @@ class Simulator:
         results.append(self.nodes_visited)
         results.append(self.access_nums[0] + self.access_nums[2])
         results.append(self.access_nums[1] + self.access_nums[3])
-        results.append(self.access_nums[5])
+        results.append(self.access_nums[4])
         results.append(self.num_conflicts)
         results.append(self.subtree_conflicts)
         results.append(self.subtree_conflicts + self.num_conflicts)
         results.append(self.stages_stalled)
+        total_cycles = self.toptree_cycles + self.subtree_cycles
+        percent = self.stages_stalled / (self.pipeline_size * self.num_PEs * self.subtree_cycles)
+        toptree_percent = self.toptree_stages_stalled / (self.pipeline_size * self.num_PEs * self.toptree_cycles)
 
-        percent = self.stages_stalled / (self.pipeline_size * self.num_PEs * self.cycles)
         results.append(percent)
         sum = 0
         max = 0
@@ -113,12 +117,12 @@ class Simulator:
             if pe.lines_processed > max:
                 max = pe.lines_processed
         results.append(sum)
-        results.append(self.cycles)
+        results.append(self.toptree_cycles)
         results.append(self.subtree_cycles)
-        results.append(self.subtree_cycles + self.cycles)
+        results.append(total_cycles)
 
 
-        avg = self.cycles / self.nodes_visited
+        avg = total_cycles / self.nodes_visited
         results.append(avg)
         results.append(self.kd_tree.toptree_levels)
         return results
@@ -126,7 +130,6 @@ class Simulator:
     #Starts processing of queries, managing PEs to ensure they always have an assigned query if possible
     def run_sim(self):
         #As long as at least one PE is processing instructions, the simulation continues
-        #print(self.toptree)
         while len(self.active_queries) > 0:
             #print(len(self.active_queries))
             for i in range(self.num_PEs): 

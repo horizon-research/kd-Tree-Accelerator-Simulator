@@ -32,7 +32,16 @@ class PE:
                 if not query_at_stage.stalled:
                     query_at_stage.next_instruction()
                 else:
-                    sim.stages_stalled += stage + 1
+                    if sim.toptree:
+                        sim.toptree_stages_stalled += 1
+                    else:
+                        sim.subtree_stages_stalled += stage + 1
+            else:
+                if sim.toptree:
+                    sim.toptree_stages_stalled += 1
+                else:
+                    sim.subtree_stages_stalled += stage + 1
+
 
                         
                 
