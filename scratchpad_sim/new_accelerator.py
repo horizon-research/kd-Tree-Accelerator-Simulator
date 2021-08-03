@@ -26,8 +26,8 @@ class Simulator:
         #Query to be processed next
         self.nodes_visited = 0
         self.query_index = 0
-
-        self.stages_stalled = 0
+        self.x = 5
+        self.subtree_stages_stalled = 0
         self.toptree_stages_stalled = 0
 
         #PE setup
@@ -37,7 +37,7 @@ class Simulator:
         self.pipeline_size = 34
         self.backtrack_pipeline_size = 8
         self.ideal = ideal
-        self.inaccuracy = 0
+        self.accuracy = 0
         #Creates appropriate number of query queues
         self.merged_queues = merged_queues
         self.query_queues = []
@@ -104,9 +104,9 @@ class Simulator:
         results.append(self.num_conflicts)
         results.append(self.subtree_conflicts)
         results.append(self.subtree_conflicts + self.num_conflicts)
-        results.append(self.stages_stalled)
+        results.append(self.toptree_stages_stalled + self.subtree_stages_stalled)
         total_cycles = self.toptree_cycles + self.subtree_cycles
-        percent = self.stages_stalled / (self.pipeline_size * self.num_PEs * self.subtree_cycles)
+        percent = self.subtree_stages_stalled / (self.pipeline_size * self.num_PEs * self.subtree_cycles)
         toptree_percent = self.toptree_stages_stalled / (self.pipeline_size * self.num_PEs * self.toptree_cycles)
 
         results.append(percent)
@@ -125,6 +125,7 @@ class Simulator:
         avg = total_cycles / self.nodes_visited
         results.append(avg)
         results.append(self.kd_tree.toptree_levels)
+        results.append(self.accuracy / self.num_queries)
         return results
 
     #Starts processing of queries, managing PEs to ensure they always have an assigned query if possible
@@ -147,7 +148,7 @@ class Simulator:
                     if len(queue) == self.subtree_queue_size:
                         self.flush_queues(i, queue)
             if self.toptree:
-                self.cycles += 1
+                self.toptree_cycles += 1
             else:
                 self.subtree_cycles += 1
 
@@ -222,12 +223,14 @@ class Simulator:
                 k = int(tokens[4])
                 #if self.toptree:
                 actual = self.kd_tree.knn_top(p, k)
-                ideal = self.kd_tree.knn_ideal(p, k)
+                ideal = self.kd_tree.knn_ideal(p, k + self.x)
+                '''
                 sum = 0
                 for p1, p2 in zip(actual, ideal):
                     sum += (p2[0] - p1[0])
                 self.inaccuracy += sum
-                
+                '''
+                self.accuracy += self.results_present(actual, ideal)
                 
             else:
                 print("Unknown query")
@@ -257,7 +260,6 @@ class Simulator:
         elif query.finished():
             self.active_queries.remove(query)
             query.stalled = False
-            #print(f'{query} $$$$$$$$$$$$$$$$$$$')
             return True
         elif ((query.backtrack and stage == self.backtrack_pipeline_size - 1) or stage == self.pipeline_size - 1) and not query.stalled:
             if self.merged_queues:
@@ -268,7 +270,13 @@ class Simulator:
             return True
     
         return False
-           
+
+    def results_present(self, actual, ideal):
+        for p in actual:
+            if not p in ideal:
+                return 0
+        return 1
+
 #Takes input and runs on according simulator
 def main():
     
