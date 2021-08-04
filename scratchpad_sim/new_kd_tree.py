@@ -209,11 +209,12 @@ class KD_Tree:
                 #it is possible that the closest point could be contained in right subtree, so it is searched as well
                 if self.approximation != 0:
                     self.computation(6)
-                    if (query_val + current_best[0][0] > current_val or k > len(current_best)):
+                    if query_val + -(current_best[0][0]) > current_val:
                         self.stack.append(call + 1)
                         self.access(WRITE, QUERY, call + 1, 0)
-                        self.backtrack()
                         self.knn_rec(query, current_best, k, tree.right, level + 1)
+                        self.backtrack()
+
                 
             #If target value is greater than current, take right subtree
             else:
@@ -227,11 +228,12 @@ class KD_Tree:
                 #it is possible that the closest point could be contained in the left subtree, so it is searched as well
                 if self.approximation != 0:
                     self.computation(6)
-                    if (query_val - current_best[0][0] < current_val or k > len(current_best)):
+                    if query_val - -(current_best[0][0]) < current_val:
                         self.stack.append(call + 1)
                         self.access(WRITE, QUERY, call + 1, 0)
-                        self.backtrack()
                         self.knn_rec(query, current_best, k, tree.left, level + 1)
+                        self.backtrack()
+
         else:
             self.backtrack()
         self.access(READ, QUERY, self.stack.pop(), 32)
@@ -384,7 +386,7 @@ class KD_Tree:
                 #BT
                 #If the current best distance + the target value is greater than the current value,
                 #it is possible that the closest point could be contained in right subtree, so it is searched as well
-                if (query_val + current_best[0][0] > current_val or k > len(current_best)):
+                if (query_val + -(current_best[0][0]) > current_val or k > len(current_best)):
                     self.knn_ideal_rec(query, current_best, k, tree.right, level + 1)
                 
             #If target value is greater than current, take right subtree
@@ -392,7 +394,7 @@ class KD_Tree:
                 self.knn_ideal_rec(query, current_best, k, tree.right, level + 1)
                 #If the target value - the current best distance is less than than the current value,
                 #it is possible that the closest point could be contained in the left subtree, so it is searched as well
-                if (query_val - current_best[0][0] < current_val or k > len(current_best)):
+                if (query_val - -(current_best[0][0]) < current_val or k > len(current_best)):
                     self.knn_ideal_rec(query, current_best, k, tree.left, level + 1)
         
 

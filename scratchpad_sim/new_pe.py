@@ -42,7 +42,6 @@ class PE:
                 else:
                     sim.subtree_stages_stalled += stage + 1
 
-
                         
                 
     #Determines if the pipeline is ready for a new query
@@ -67,6 +66,7 @@ class PE:
         line = query.current_instruction
         #print(line)
         #Read
+        
         if line[0] == "R":
             access_type = line[1]
             if not query.stalled:
@@ -90,6 +90,5 @@ class PE:
         #If there are no more instructions to be processed, the query is removed from the list of active queries, and the PE is ready to be assigned a new query
         elif line[0] == "BT":
             if not query.stalled:
-                pipeline_switch = True
                 query.backtrack = not query.backtrack
         

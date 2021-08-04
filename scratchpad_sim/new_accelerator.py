@@ -26,7 +26,7 @@ class Simulator:
         #Query to be processed next
         self.nodes_visited = 0
         self.query_index = 0
-        self.x = 5
+        self.x = 0
         self.subtree_stages_stalled = 0
         self.toptree_stages_stalled = 0
 
@@ -49,7 +49,6 @@ class Simulator:
 
         self.active_queries = []
         self.num_subtrees = 2**self.kd_tree.toptree_levels
-        print(self.num_subtrees)
         self.local_subtree_queues = [deque() for i in range(self.num_subtrees)]
         self.subtree_queue_size = 16
         self.subtree_queries  = [deque() for i in range(self.num_subtrees)]
@@ -224,6 +223,8 @@ class Simulator:
                 #if self.toptree:
                 actual = self.kd_tree.knn_top(p, k)
                 ideal = self.kd_tree.knn_ideal(p, k + self.x)
+                
+                #from time import sleep; sleep(0.1)
                 '''
                 sum = 0
                 for p1, p2 in zip(actual, ideal):
@@ -231,7 +232,7 @@ class Simulator:
                 self.inaccuracy += sum
                 '''
                 self.accuracy += self.results_present(actual, ideal)
-                
+
             else:
                 print("Unknown query")
                 exit()
