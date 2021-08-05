@@ -3,7 +3,7 @@ from query import Query
 from point import Point
 import time
 from collections import deque
-from memory import Memory
+from memory import Memory, Scratchpad
 #Constants which make trace writes more readable
 data_sizes = [40, 40, 64]
 
@@ -400,7 +400,7 @@ class KD_Tree:
 
 class Bucket_KD_Tree:
     def insert(self, tree, p, level):
-        if tree.right  ==  None and tree.left == None:
+        if level == self.levels:
             self.buckets[tree].append(p)
             self.point_indices[p] = self.num_points
             self.num_points += 1
@@ -421,17 +421,23 @@ class Bucket_KD_Tree:
         self.toptree_size = 0
         self.levels = levels
         self.buckets = {}
+        self.split = False
+        self.memory_ptrs = [0, 0, 0, 0]
+        self.query_trace = Query()
+        self.num_dimensions = 3
+        self.approximation = -1
         for line in lines:
             tokens = line.split()
-            p = Point(tokens)
+            p = Point(tokens[0:3])
             points.append(p)
         self.root = self.build_toptree(points, 0, len(points) - 1, 0, levels)
         for p in points:
             self.insert(self.root, p, 0)
-        self.print_tree_rec(self.root, 0, False)
+        #self.print_tree_rec(self.root, 0, False)
+        for b in self.buckets:
+            print(len(self.buckets[b]))
     def build_toptree(self, points, lo, hi, level, max):
         #Median for sublist is found
-        print(len(points))
         median = int((lo + hi) / 2)
         #Dimension to sort on
         dim = level % 3
@@ -529,17 +535,7 @@ class Bucket_KD_Tree:
                 self.computation(1)
                 self.knn_rec(query, current_best, k, tree.left, level + 1)
 
-                #BT
-                #If the current best distance + the target value is greater than the current value,
-                #it is possible that the closest point could be contained in right subtree, so it is searched as well
-                if self.approximation != 0:
-                    self.computation(6)
-                    if (query_val + current_best[0][0] > current_val or k > len(current_best)):
-                        self.stack.append(call + 1)
-                        self.access(WRITE, QUERY, call + 1, 0)
-                        self.backtrack()
-                        self.knn_rec(query, current_best, k, tree.right, level + 1)
-                
+             
             #If target value is greater than current, take right subtree
             else:
                 self.stack.append(call + 1)
@@ -547,16 +543,7 @@ class Bucket_KD_Tree:
                 self.computation(1)
                 self.knn_rec(query, current_best, k, tree.right, level + 1)
 
-                #BT
-                #If the target value - the current best distance is less than than the current value,
-                #it is possible that the closest point could be contained in the left subtree, so it is searched as well
-                if self.approximation != 0:
-                    self.computation(6)
-                    if (query_val - current_best[0][0] < current_val or k > len(current_best)):
-                        self.stack.append(call + 1)
-                        self.access(WRITE, QUERY, call + 1, 0)
-                        self.backtrack()
-                        self.knn_rec(query, current_best, k, tree.left, level + 1)
+               
         else:
             self.backtrack()
         self.access(READ, QUERY, self.stack.pop(), 32)
@@ -569,9 +556,9 @@ class Bucket_KD_Tree:
             self.computation(4)
             if len(current_best) == k:
                 if current_best[0][0] < distance:
-                    heapq.heapreplace(current_best, p)
+                    heapq.heapreplace(current_best, (distance, p))
             else:
-                heapq.heappush(current_best, p)
+                heapq.heappush(current_best, (distance, p))
             
     #Computes address for given address based on data type, data index, and offset, and writes it to the trace in a tuple
     def access(self, access_type, data_type, index, offset):
@@ -598,8 +585,7 @@ class Node:
             self.right = None
             self.p = p
 
-'''
-tree = Bucket_KD_Tree("../kdTree_Inputs/test", 3)
-tree.memory = Memory()
-tree.knn(Point([0,0,0]), 2)
-'''
+
+tree = Bucket_KD_Tree("../kdTree_Inputs/frame_16", 3)
+tree.memory = Memory(True, [Scratchpad(5000, 8)], None)
+print(tree.knn(Point([0,0,0]), 2))
