@@ -14,14 +14,22 @@ class Point:
             sum += diff**2
         return sum
         
-    #valuef for given dimension
+    #valuef for given dimensiona
     def dim_value(self, dim):
         return self.values[dim]
 
     #Resolves edge case in knn search where two points are equal distance from query, the point which is chosen doesn't really matter
     def __gt__(self, p2):
         return self
-        
+    def __eq__(self, p2):
+        for v1, v2 in zip(self.values, p2.values):
+            if v1 != v2:
+                return False
+            else:
+                return True
+
+    def __hash__(self):
+        return id(self)
     def __str__(self):
         s = ''
         for val in self.values:

@@ -29,7 +29,7 @@ class Simulator:
         self.x = 0
         self.subtree_stages_stalled = 0
         self.toptree_stages_stalled = 0
-        self.original_scheme = False
+        self.original_scheme = True
         #PE setup
         self.num_PEs = num_PEs
         self.PEs = []
@@ -280,9 +280,10 @@ class Simulator:
         return False
 
     def results_present(self, actual, ideal):
-        for p in actual:
-            if not p in ideal:
+        for a in actual:
+            if not a in ideal:
                 return 0
+        print("$$$$$")
         return 1
 
 #Takes input and runs on according simulator

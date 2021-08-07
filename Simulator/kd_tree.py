@@ -412,6 +412,7 @@ class Bucket_KD_Tree:
         self.toptree_size = 0
         self.levels = levels
         self.buckets = {}
+        self.bucket_indices = {}
         self.split = False
         self.memory_ptrs = [0, 0, 0, 0]
         self.query_trace = Query()
@@ -426,10 +427,12 @@ class Bucket_KD_Tree:
             self.insert(self.root, p, 0)
         #self.print_tree_rec(self.root, 0, False)
         for b in self.buckets:
-            print(len(self.buckets[b][0]))
+            print(len(self.buckets[b]))
+        self.assign_buckets()
+        self.assign_toptree(self.root, 0)
     def insert(self, tree, p, level):
         if level == self.levels:
-            self.buckets[tree][0].append(p)
+            self.buckets[tree].append(p)
             self.point_indices[p] = self.num_points
             self.num_points += 1
         else:
@@ -456,7 +459,8 @@ class Bucket_KD_Tree:
             n.right = self.build_toptree(points, median + 1, hi, level + 1, max)
             return n
         else:
-            self.buckets[n] = ([], self.num_buckets)
+            self.buckets[n] = []
+            self.bucket_indices[n] = self.num_buckets
             self.num_buckets += 1
             return n
     
@@ -466,7 +470,7 @@ class Bucket_KD_Tree:
             
             for i in range(level):
                 print("  ", end='')
-            for p in self.buckets[tree][0]:
+            for p in self.buckets[tree]:
                 print(p, end=' ')
             print()
             
@@ -495,11 +499,11 @@ class Bucket_KD_Tree:
         if tree:
             self.computation(2)
             if tree in self.buckets:
-                self.insert_sub(self.buckets[tree][1])
-                self.exhaustive_search(query, current_best, self.buckets[tree][0], k)
+                self.insert_sub(self.bucket_indices[tree])
+                self.exhaustive_search(query, current_best, self.buckets[tree], k)
                 return
             #RP
-            self.access(READ, POINT, self.point_indices[tree.p], 0)
+            self.access(READ, TOPTREE_POINT, self.toptree_point_indices[tree.p], 0)
 
             #CD
             splitting_plane = level % self.num_dimensions
@@ -581,6 +585,23 @@ class Bucket_KD_Tree:
     
     def insert_sub(self, subtree):
         self.query_trace.add(("SUB", subtree))
+
+    #Assigns nodes in the toptree to indices
+    def assign_toptree(self, tree, level):
+        if level <= self.levels:
+            self.toptree_point_indices[tree.p] = self.toptree_size
+            self.toptree_size += 1
+
+            self.assign_toptree(tree.left, level + 1)
+            self.assign_toptree(tree.right, level + 1)
+
+    #Assigns nodes in the given subtree to indices
+    def assign_buckets(self):
+        num = 0
+        for b in self.buckets:
+            print(b)
+            for i, p in enumerate(self.buckets[b]):
+                self.point_indices[p] = i
 
 
 #Internal node class
