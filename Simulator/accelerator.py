@@ -14,7 +14,7 @@ from time import sleep
     
 #Represents high level simulator, contains PEs, as well as statistics on the current simulation
 class Simulator:
-    def __init__(self, kd_tree_in, queries_in, memory, num_PEs, pipelined, merged_queues, ideal, bucket_kd_tree):
+    def __init__(self, kd_tree_in, queries_in, memory, num_PEs, pipelined, merged_queues, ideal, bucket_kd_tree, new_scheme):
         #Scratchpad setup
         self.memory = memory
         self.split = memory.split
@@ -26,10 +26,10 @@ class Simulator:
         #Query to be processed next
         self.nodes_visited = 0
         self.query_index = 0
-        self.x = 0
+        self.x = 5
         self.subtree_stages_stalled = 0
         self.toptree_stages_stalled = 0
-        self.original_scheme = True
+        self.original_scheme = new_scheme
         #PE setup
         self.num_PEs = num_PEs
         self.PEs = []
@@ -38,7 +38,9 @@ class Simulator:
         self.backtrack_pipeline_size = 8
         self.ideal = ideal
         self.bucket_kd_tree = bucket_kd_tree
-        self.accuracy = 0
+        self.accuracy1 = 0
+        self.accuracy = [0, 0, 0, 0]
+
         #Creates appropriate number of query queues
         self.merged_queues = merged_queues
         self.query_queues = []
@@ -125,14 +127,15 @@ class Simulator:
         avg = total_cycles / self.nodes_visited
         results.append(avg)
         results.append(self.kd_tree.toptree_levels)
-        results.append(self.accuracy / self.num_queries)
+        results.append(self.accuracy1 / self.num_queries)
+        for a in self.accuracy:
+            results.append(a / self.num_queries)
         return results
 
     #Starts processing of queries, managing PEs to ensure they always have an assigned query if possible
     def run_sim(self):
         #As long as at least one PE is processing instructions, the simulation continues
         while len(self.active_queries) > 0:
-            print(len(self.active_queries))
             #print(len(self.active_queries))
             for i in range(self.num_PEs): 
                 pe = self.PEs[i]
@@ -152,30 +155,13 @@ class Simulator:
                 self.toptree_cycles += 1
             else:
                 self.subtree_cycles += 1
-
         #Once the toptree is finished, subtree processing begins
         if self.toptree:
             for i, queue in enumerate(self.local_subtree_queues):
                 self.flush_queues(i, queue)
             self.toptree = False
             self.process_subtrees()
-            '''
-            self.active_queries.extend(self.subtree_queries[self.current_subtree])
-            self.query_queues[0].extend(self.subtree_queries[self.current_subtree])
-            self.memory.load(2)   
-            self.memory.load(3)   
-            self.toptree = False
-            self.current_subtree += 1
-            self.run_sim()'''
-        #else:
-            '''#The next subtree to be processed is loaded into memory
-            if self.current_subtree < self.num_subtrees:
-                self.active_queries.extend(self.subtree_queries[self.current_subtree])
-                self.query_queues[0].extend(self.subtree_queries[self.current_subtree])
-                self.memory.load(2)   
-                self.memory.load(3) 
-                self.current_subtree += 1
-                self.run_sim()'''
+            
             
     def process_subtrees(self):
         for i in range(self.num_subtrees):
@@ -238,7 +224,7 @@ class Simulator:
                     sum += (p2[0] - p1[0])
                 self.inaccuracy += sum
                 '''
-                self.accuracy += self.results_present(actual, ideal)
+                self.calculate_accuracy(actual, ideal)
 
             else:
                 print("Unknown query")
@@ -278,13 +264,30 @@ class Simulator:
             return True
     
         return False
-
-    def results_present(self, actual, ideal):
+    def calculate_accuracy(self, actual, ideal):
         for a in actual:
-            if not a in ideal:
-                return 0
-        print("$$$$$")
-        return 1
+            if a[0] == -0:
+                self.accuracy1 += 1
+                break
+        x_list = [5, 6, 8, 10]
+        satisfied = False
+        for i, x in enumerate(x_list):
+            if satisfied:
+                self.accuracy[i] += 1
+            else:
+                percent = self.results_present(actual, ideal, x) / 5
+                self.accuracy[i] += percent
+                if percent == 1:
+                    satisfied = True
+
+    def results_present(self, actual, ideal, x):
+        end = 11
+        count = 0
+        subset = ideal[end - x - 1: end]
+        for a in actual:
+            if a in subset:
+                count += 1
+        return count
 
 #Takes input and runs on according simulator
 def main():
@@ -345,7 +348,8 @@ def configurate_simulator(config):
             size = int(tokens[7 + (i * 2)])
             num_banks = int(tokens[8 + (i * 2)])
             scratchpads.append(Scratchpad(size, num_banks))
-    num_levels = int(tokens[13])
+    new_scheme = True if tokens[13] == "NEW" else False
+    num_levels = int(tokens[14])
     kd_tree = KD_Tree("../kdTree_Inputs/" + tokens[0], num_levels, -1)
     bucket_kd_tree = Bucket_KD_Tree("../kdTree_Inputs/" + tokens[0], num_levels, -1)
     queries = open("../Query_Inputs/" + tokens[1]).readlines()
@@ -355,7 +359,7 @@ def configurate_simulator(config):
     bucket_kd_tree.memory = memory
     kd_tree.split = split
     memory.calculate_address_space(kd_tree.subtree_size, kd_tree.toptree_size, kd_tree.tree_depth)
-    s = Simulator(kd_tree, queries, memory, num_PEs, pipelined, merged, ideal, bucket_kd_tree)
+    s = Simulator(kd_tree, queries, memory, num_PEs, pipelined, merged, ideal, bucket_kd_tree, new_scheme)
     return (s, tokens[0], tokens[1])
 
    

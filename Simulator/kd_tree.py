@@ -599,7 +599,6 @@ class Bucket_KD_Tree:
     def assign_buckets(self):
         num = 0
         for b in self.buckets:
-            print(b)
             for i, p in enumerate(self.buckets[b]):
                 self.point_indices[p] = i
 

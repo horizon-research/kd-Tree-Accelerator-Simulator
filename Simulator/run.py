@@ -14,7 +14,7 @@ log = open("../Log_Files/" + file + "_log.csv", "w")
 writer = csv.writer(log)
 writer.writerow(["kd_Tree_File", "Query_File", "Num_PEs", "Pipeline", "Merged_QQ", "Split_Scratchpad", "Scratchpad_0_Size", "Scratchpad_0_Banks",  "Scratchpad_1_Size", "Scratchpad_1_Banks", "Scratchpad_2_Size", "Scratchpad_2_Banks","Ideal",
     "Queries_Processed", "Nodes_Visited", "Point_Accesses", "Node_Accesses", "Stack_Accesses", 
-    "Toptree Conflicts", "Subtree Conflicts", "Total Conflicts", "Stages_Stalled", "Percent_Time_Stalled", "Lines_Processed", "Toptree Cycles", "Subtree Cycles", "Total Cycles", "Avg_Cycles_per_Node", "Toptree Levels", "Accuracy"])
+    "Toptree Conflicts", "Subtree Conflicts", "Total Conflicts", "Stages_Stalled", "Percent_Time_Stalled", "Lines_Processed", "Toptree Cycles", "Subtree Cycles", "Total Cycles", "Avg_Cycles_per_Node", "Toptree Levels", "Accuracy1", "Accuracy5", "Accuracy6", "Accuracy8", "Accuracy10"])
 log.flush()
 log.close()
 size = len(open("../Config_Inputs/" + file).readlines())
