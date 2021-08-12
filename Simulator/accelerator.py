@@ -217,13 +217,6 @@ class Simulator:
 
                 ideal = self.kd_tree.knn_ideal(p, k + self.x)
                 
-                #from time import sleep; sleep(0.1)
-                '''
-                sum = 0
-                for p1, p2 in zip(actual, ideal):
-                    sum += (p2[0] - p1[0])
-                self.inaccuracy += sum
-                '''
                 self.calculate_accuracy(actual, ideal)
 
             else:
@@ -367,6 +360,7 @@ class Michigan_Simulator(Simulator):
         self.exhaustive_pes = [PE(24, 0) for i in range(4)]
         self.num_exhaustive_pes = 4
         self.bucket_caches = []
+        self.exhaustive_queue = deque()
     def run_sim(self):
         #As long as at least one PE is processing instructions, the simulation continues
         while len(self.active_queries) > 0:
@@ -383,20 +377,13 @@ class Michigan_Simulator(Simulator):
             #Accesses processed during this cycle are returned
             self.memory.clear_banks()
             self.memory.process_loads()
-            if self.toptree:
-                for i, queue in enumerate(self.local_subtree_queues):
-                    if len(queue) == self.subtree_queue_size:
-                        self.flush_queues(i, queue)
-            if self.toptree:
-                self.toptree_cycles += 1
-            else:
-                self.subtree_cycles += 1
-        #Once the toptree is finished, subtree processing begins
-        if self.toptree:
+            self.flush_queues()
+            
+            
+        def flush_queues():
             for i, queue in enumerate(self.local_subtree_queues):
-                self.flush_queues(i, queue)
-            self.toptree = False
-            self.process_subtrees()
-
-   
+                if len(queue) == self.subtree_queue_size:
+                    self.exhaustive_queue.append(queue)
+        def manage_search_queries():
+            
 main()

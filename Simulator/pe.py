@@ -1,6 +1,7 @@
 #Processing Engine class, contains Pe's current status, as well as thw query it's currently assigned to
+from Simulator.query import Query
 from os import pipe
-
+from collections import deque
 
 class PE:
     def __init__(self, pipeline_size, backtrack_pipeline_size):
@@ -91,4 +92,28 @@ class PE:
         elif line[0] == "BT":
             if not query.stalled:
                 query.backtrack = not query.backtrack
-        
+class Exhaustive_PE:
+    def __init__(self, capacity):
+        self.queries = []
+        self.capacity = capacity
+        self.master_query = Query()
+    def process_cycle(self, sim):
+        if not self.stalled:
+            self.master_query.current_instruction = self.instructions.pop()
+        if self.master_query.current_instruction[0] == "R":
+            access_type = self.master_query.current_instruction[1]
+            if not self.stalled:
+                sim.access_nums[access_type] += 1
+            address = self.master_query.current_instruction[2]
+            
+            #If true is returned there was a bank conflict
+            
+            if sim.memory.read(access_type, address):
+                if sim.toptree:
+                    sim.num_conflicts += 1
+                else:
+                    sim.subtree_conflicts += 1
+            else:
+                self.stalled = False
+    
+

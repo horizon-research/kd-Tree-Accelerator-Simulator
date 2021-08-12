@@ -413,6 +413,7 @@ class Bucket_KD_Tree:
         self.levels = levels
         self.buckets = {}
         self.bucket_indices = {}
+        self.bucket_nums = {}
         self.split = False
         self.memory_ptrs = [0, 0, 0, 0]
         self.query_trace = Query()
@@ -567,6 +568,14 @@ class Bucket_KD_Tree:
                     heapq.heapreplace(current_best, (distance, p))
             else:
                 heapq.heappush(current_best, (distance, p))
+    def exhaustive_search_trace(self, bucket_num, query):
+        temp = self.query_trace
+        self.query_trace = query
+        bucket = self.bucket_nums[bucket_num]
+        for p in bucket:
+            self.access(READ, POINT, self.point_indices[p], 0)
+            self.computation(22)
+        self.query_trace = temp
             
     #Computes address for given address based on data type, data index, and offset, and writes it to the trace in a tuple
     def access(self, access_type, data_type, index, offset):
@@ -599,6 +608,8 @@ class Bucket_KD_Tree:
     def assign_buckets(self):
         num = 0
         for b in self.buckets:
+            self.bucket_nums[num] = b
+            num += 1
             for i, p in enumerate(self.buckets[b]):
                 self.point_indices[p] = i
 
