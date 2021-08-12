@@ -361,6 +361,42 @@ def configurate_simulator(config):
     memory.calculate_address_space(kd_tree.subtree_size, kd_tree.toptree_size, kd_tree.tree_depth)
     s = Simulator(kd_tree, queries, memory, num_PEs, pipelined, merged, ideal, bucket_kd_tree, new_scheme)
     return (s, tokens[0], tokens[1])
+class Michigan_Simulator(Simulator):
+    def __init__(self, kd_tree_in, queries_in, memory, num_PEs, pipelined, merged_queues, ideal, bucket_kd_tree, new_scheme):
+        super().__init__(self, kd_tree_in, queries_in, memory, num_PEs, pipelined, merged_queues, ideal, bucket_kd_tree, new_scheme)
+        self.exhaustive_pes = [PE(24, 0) for i in range(4)]
+        self.num_exhaustive_pes = 4
+        self.bucket_caches = []
+    def run_sim(self):
+        #As long as at least one PE is processing instructions, the simulation continues
+        while len(self.active_queries) > 0:
+            #print(len(self.active_queries))
+            for i in range(self.num_PEs): 
+                pe = self.PEs[i]
+                pe.manage_pipeline(self)
+                
+                #If the PE has an open spot in its pipeline a new query is attempted to be assigned to the PE
+                if pe.pipeline_open(self.pipelined):
+                    self.assign_query(i, pe)
+            for pe in self.exhaustive_pes:
+                pe.manage_pipeline()
+            #Accesses processed during this cycle are returned
+            self.memory.clear_banks()
+            self.memory.process_loads()
+            if self.toptree:
+                for i, queue in enumerate(self.local_subtree_queues):
+                    if len(queue) == self.subtree_queue_size:
+                        self.flush_queues(i, queue)
+            if self.toptree:
+                self.toptree_cycles += 1
+            else:
+                self.subtree_cycles += 1
+        #Once the toptree is finished, subtree processing begins
+        if self.toptree:
+            for i, queue in enumerate(self.local_subtree_queues):
+                self.flush_queues(i, queue)
+            self.toptree = False
+            self.process_subtrees()
 
    
 main()

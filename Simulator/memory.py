@@ -64,7 +64,10 @@ class Memory:
     def load(self, data_type):
         scratchpad = 0 if self.active[data_type] == 1 else 0
         scratchpad_num = scratchpad * self.num_scratchpads + data_type
-        self.processing_loads.append([scratchpad_num, data_type, LOAD_CYCLES])
+        load_size = self.scratchpads[scratchpad_num].size
+        load_cycles = self.DRAM.latency + (load_size / self.DRAM.rate)
+
+        self.processing_loads.append([scratchpad_num, data_type, load_cycles])
     def clear_banks(self):
         for spad in self.scratchpads:
             spad.clear_banks()
@@ -139,4 +142,5 @@ class Scratchpad:
         return Scratchpad(self.size, self.num_banks)
 class DRAM:
     def __init__(self, size):
-        self.size = 0
+        self.latency = 500
+        self.rate = 500
