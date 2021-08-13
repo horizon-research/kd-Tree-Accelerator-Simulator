@@ -3,7 +3,7 @@
 This repository contains the source code for a simple simulation of a point cloud accelerator. 
 The simulator takes in a k-d tree input file, a knn search query file, and a simulator configuration file. It outputs a csv file containg the results of the simulation.  
 
-The simulated accelerator attempts to improve memeory performance by splitting the k-d tree into two sections: the toptree, the first *n* levels of the tree , and the subtrees, whose root nodes start just below the toptree. The toptree is peremenantly stored in the scratchpad memory due top its small size and frequent usage. The subtrees are loaded into the scratchpad as needed.
+The simulated accelerator attempts to improve memeory performance by splitting the k-d tree into two sections: the toptree, the first *n* levels of the tree, and the subtrees, whose root nodes start just below the toptree. The toptree is peremenantly stored in the scratchpad memory due top its small size and frequent usage. The subtrees are loaded into the scratchpad as needed.
 
 ### Scratchpad Simulator instructions:
 - In the scratchpad_sim folder, run in the format:
