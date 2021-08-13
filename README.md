@@ -33,9 +33,10 @@ The simulated accelerator attempts to improve memeory performance by splitting t
 - Joint vs Split Scratchpad (If split, scratchpad parameters will be entered once for each scratchpad)
 - Scratchpad Size (bytes)
 - Number of Scratchpad Banks
+- Simulator version
 - Number of toptree levels
 - Examples
-  > stat_input stat_queries0.25 PIPELINED NON-MERGED ACTUAL 1 SPLIT 5000000 1 5000000 1 5000000 1 6
+  > stat_input stat_queries0.25 PIPELINED NON-MERGED ACTUAL 1 SPLIT 5000000 1 5000000 1 5000000 1 NEW 6
   
   
   
