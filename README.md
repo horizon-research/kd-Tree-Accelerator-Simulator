@@ -1,12 +1,9 @@
 # k-d Tree Scratchpad Simulator
 ---
-This repository contains the source code for a simple simulation of a point cloud accelerator. It consists of two basic parts:
+This repository contains the source code for a simple simulation of a point cloud accelerator. 
+The simulator takes in a k-d tree input file, a knn search query file, and a simulator configuration file. It outputs a csv file containg the results of the simulation.  
 
-First, an implementation of the kd-Tree data structure, and some of its most commonly used search algorithms. When ran, these algorithms produce trace data of the simulated memory accesses performed during execution.    
-
-Second, a simple simulation of an accelerator utilzing scratchpad memory, which takes in the kd-Tree traces, and simulates the given memory accesses on an acclerator with a specified configuration.  
-
-
+The simulated accelerator attempts to improve memeory performance by splitting the k-d tree into two sections: the toptree, the first *n* levels of the tree , and the subtrees, whose root nodes start just below the toptree. The toptree is peremenantly stored in the scratchpad memory due top its small size and frequent usage. The subtrees are loaded into the scratchpad as needed.
 
 ### Scratchpad Simulator instructions:
 - In the scratchpad_sim folder, run in the format:
@@ -36,8 +33,9 @@ Second, a simple simulation of an accelerator utilzing scratchpad memory, which 
 - Joint vs Split Scratchpad (If split, scratchpad parameters will be entered once for each scratchpad)
 - Scratchpad Size (bytes)
 - Number of Scratchpad Banks
+- Number of toptree levels
 - Examples
-  > stat_input stat_queries0.25 PIPELINED NON-MERGED ACTUAL 1 SPLIT 5000000 1 5000000 1 5000000 1
-  > stat_input stat_queries0.25 NON-PIPELINED MERGED IDEAL 1 JOINT 5000000 1 
+  > stat_input stat_queries0.25 PIPELINED NON-MERGED ACTUAL 1 SPLIT 5000000 1 5000000 1 5000000 1 6
+  
   
   
